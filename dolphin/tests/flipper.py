@@ -1,16 +1,11 @@
-from django.utils.unittest import TestCase
+from django.test import TestCase
 
 from dolphin.models import FeatureFlag
 from dolphin import flipper
 
 
 class TestIsActive(TestCase):
-    def setUp(self):
-        FeatureFlag.objects.create(name="testing_enabled", enabled=True)
-        FeatureFlag.objects.create(name="testing_disabled", enabled=False)
-
-    def tearDown(self):
-        FeatureFlag.objects.all().delete()
+    fixtures = ['flags.json']
 
     def test_is_active(self):
         self.assertTrue(flipper.is_active("testing_enabled"))

@@ -1,14 +1,12 @@
 import re
 
-from django.utils.unittest import TestCase
+from django.test import TestCase
 from django.template import Context, Template
 
 from dolphin.models import FeatureFlag
 
 class TemplateTagTest(TestCase):
-    def setUp(self):
-        FeatureFlag.objects.create(name="testing_enabled", enabled=True)
-        FeatureFlag.objects.create(name="testing_disabled", enabled=False)
+    fixtures = ['flags.json']
 
     def tearDown(self):
         FeatureFlag.objects.all().delete()
