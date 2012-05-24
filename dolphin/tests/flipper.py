@@ -9,6 +9,9 @@ class TestIsActive(TestCase):
         FeatureFlag.objects.create(name="testing_enabled", enabled=True)
         FeatureFlag.objects.create(name="testing_disabled", enabled=False)
 
+    def tearDown(self):
+        FeatureFlag.objects.all().delete()
+
     def test_is_active(self):
         self.assertTrue(flipper.is_active("testing_enabled"))
         self.assertFalse(flipper.is_active("testing_disabled"))
