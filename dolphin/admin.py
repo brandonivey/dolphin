@@ -4,7 +4,7 @@ from .models import FeatureFlag
 
 
 class FeatureFlagAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'enabled', 'registered_only', 'limit_to_users')
 
 
 admin.site.register(FeatureFlag, FeatureFlagAdmin)

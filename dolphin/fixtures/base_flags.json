@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "dolphin.featureflag", "fields": {"users": [], "enabled": true, "limit_to_users": false, "staff_only": false, "registered_only": false, "name": "enabled"}}, {"pk": 2, "model": "dolphin.featureflag", "fields": {"users": [], "enabled": false, "limit_to_users": false, "staff_only": false, "registered_only": false, "name": "disabled"}}]

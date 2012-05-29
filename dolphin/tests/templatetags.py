@@ -6,7 +6,7 @@ from django.template import Context, Template
 from dolphin.models import FeatureFlag
 
 class TemplateTagTest(TestCase):
-    fixtures = ['flags.json']
+    fixtures = ['base_flags.json']
 
     def tearDown(self):
         FeatureFlag.objects.all().delete()
@@ -23,7 +23,7 @@ class TemplateTagTest(TestCase):
     def test_ifactive_enabled(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive testing_enabled %}
+        {% ifactive enabled %}
         Test
         {% endifactive %}
         """
