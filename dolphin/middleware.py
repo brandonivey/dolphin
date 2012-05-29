@@ -1,15 +1,13 @@
 import threading
 
 class RequestStoreMiddleware(object):
+    local = threading.local()
     """Stores the request object for making it so that the template tags/etc don't
     have to pass the request object in"""
-    def __init__(self):
-        if not hasattr(self, "local"):
-            self.local = threading.local()
 
-    @property
-    def request(self):
-        return self.local.__dict__.get('request', None)
+    @staticmethod
+    def request():
+        return RequestStoreMiddleware.local.__dict__.get('request', None)
 
     def clear(self):
         self.local.__dict__.clear()

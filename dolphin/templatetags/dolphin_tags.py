@@ -40,6 +40,9 @@ def ifactive(parser, token):
     #todo - other_args?
     other_args = bits[2:]
     return IfActiveNode(val1, other_args, nodelist_true, nodelist_false)
-
 ifactive = register.tag(ifactive)
 
+@register.simple_tag(takes_context=True)
+def active_tags(context):
+    req = context.get('request', None)
+    return ",".join(ff.name for ff in flipper.active_tags(request=req))

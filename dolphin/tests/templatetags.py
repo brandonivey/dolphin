@@ -1,11 +1,12 @@
 import re
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.template import Context, Template
 
 from dolphin.models import FeatureFlag
 
-class TemplateTagTest(TestCase):
+class ActiveTagTest(TestCase):
     fixtures = ['base_flags.json']
 
     def tearDown(self):
@@ -54,3 +55,38 @@ class TemplateTagTest(TestCase):
         """
         expected_resp = "Test5"
         self.check_res(text, expected_resp)
+
+class FlagListTest(TestCase):
+    fixtures = ['users.json', 'user_flags.json', 'base_flags.json']
+
+    def _fake_request(self):
+        req = type("Request", (object,), {})()
+        return req
+
+    def test_active_flag_list(self):
+        text = r"""{% load dolphin_tags %}{% active_tags %}"""
+        t = Template(text)
+        c = Context()
+
+        res = t.render(c)
+        self.assertEqual(res,
+                         "enabled")
+
+    def test_active_flag_list_user(self):
+        text = r"""{% load dolphin_tags %}{% active_tags %}"""
+        req = self._fake_request()
+        req.user = User.objects.get(username="registered")
+        c = Context({'request':req})
+        t = Template(text)
+        res = t.render(c)
+        #test a registered user that is in a selected_users flag
+        self.assertEqual(res,
+                         "enabled,registered_only,selected_users")
+
+        req.user = User.objects.get(username='staff')
+        c = Context({'request':req})
+        t = Template(text)
+        res = t.render(c)
+        #test a staff user that is not in the selected_users flag
+        self.assertEqual(res,
+                         "enabled,registered_only,staff_only")

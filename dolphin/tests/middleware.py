@@ -7,4 +7,4 @@ class TestRequestStoreMiddleware(TestCase):
         req = "Test fake request"
         m = RequestStoreMiddleware()
         m.process_request(req)
-        self.assertEquals(m.request, req)
+        self.assertEquals(m.request(), req)

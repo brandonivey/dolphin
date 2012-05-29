@@ -19,30 +19,34 @@ class DjangoBackend(Backend):
     No caching is done with this backend as of yet.
     """
     def _get_request(self, **kwargs):
-        if 'request' in kwargs:
+        if kwargs.get('request', None) is not None:
             return kwargs['request']
-        return RequestStoreMiddleware.request
+        return RequestStoreMiddleware.request()
+
+    def _flag_is_active(self, ff, request):
+        if not ff.enabled:
+            return False
+
+        if ff.registered_only or ff.limit_to_users or ff.staff_only:
+            #user based flag
+            if not request: return False #TODO error here?
+            if not request.user.is_authenticated():
+                return False
+            if ff.limit_to_users:
+                return bool(ff.users.filter(id=request.user.id).exists())
+            if ff.staff_only:
+                return request.user.is_staff
+            if ff.registered_only:
+                return True
+
+        return True
 
     def is_active(self, key, *args, **kwargs):
         try:
-            f = FeatureFlag.objects.get(name=key)
-            if not f.enabled:
-                return False
+            ff = FeatureFlag.objects.get(name=key)
+            req = self._get_request(**kwargs)
 
-            if f.registered_only or f.limit_to_users or f.staff_only:
-                #user based flag
-                request = self._get_request(**kwargs)
-                if not request: return False #TODO error here?
-                if not request.user.is_authenticated():
-                    return False
-                if f.staff_only:
-                    return request.user.is_staff
-                if f.limit_to_users:
-                    return bool(f.users.filter(id=request.user.id).exists())
-                if f.registered_only:
-                    return True
-
-            return True
+            return self._flag_is_active(ff, req)
 
         except FeatureFlag.DoesNotExist:
             return False
@@ -55,3 +59,12 @@ class DjangoBackend(Backend):
 
     def delete(self, key, *args, **kwargs):
         FeatureFlag.objects.filter(name=key).delete()
+
+    def active_flags(self, *args, **kwargs):
+        flags = FeatureFlag.objects.filter(enabled=True)
+        req = self._get_request(**kwargs)
+        registered = req and req.user.is_authenticated()
+        if not registered:
+            return flags.filter(registered_only=False, staff_only=False, limit_to_users=False)
+
+        return [ff for ff in flags if self._flag_is_active(ff, req)]

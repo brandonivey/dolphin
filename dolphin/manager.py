@@ -10,3 +10,6 @@ class FlagManager(object):
 
     def delete(self, key, *args, **kwargs):
         return self.backend.delete(key, *args, **kwargs)
+
+    def active_tags(self, *args, **kwargs):
+        return self.backend.active_flags(*args, **kwargs)

@@ -1,2 +1,0 @@
-[{"pk": 1, "model": "dolphin.featureflag", "fields": {"enabled": true, "name": "testing_enabled"}},
-{"pk": 2, "model": "dolphin.featureflag", "fields": {"enabled": false, "name": "testing_disabled"}}]
