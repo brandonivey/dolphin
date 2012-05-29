@@ -24,7 +24,7 @@ class ActiveTagTest(TestCase):
     def test_ifactive_enabled(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive enabled %}
+        {% ifactive "enabled" %}
         Test
         {% endifactive %}
         """
@@ -35,7 +35,7 @@ class ActiveTagTest(TestCase):
     def test_ifactive_disabled(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive testing_disabled %}
+        {% ifactive "testing_disabled" %}
         Test2
         {% else %}
         Test3
@@ -47,7 +47,7 @@ class ActiveTagTest(TestCase):
     def test_ifactive_missing(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive testing_missing %}
+        {% ifactive "testing_missing" %}
         Test4
         {% else %}
         Test5

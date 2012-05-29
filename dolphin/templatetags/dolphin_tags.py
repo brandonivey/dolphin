@@ -13,12 +13,13 @@ class IfActiveNode(Node):
         self.key = key
         self.nodelist_true, self.nodelist_false = nodelist_true, nodelist_false
         self.other_args = other_args
+        #TODO - other args
 
     def __repr__(self):
         return "<IfEqualNode>"
 
     def render(self, context):
-        key = self.key
+        key = self.key.resolve(context, True)
         #TODO - fix other_args here?
         if flipper.is_active(key):
             return self.nodelist_true.render(context)
@@ -36,9 +37,9 @@ def ifactive(parser, token):
         parser.delete_first_token()
     else:
         nodelist_false = NodeList()
-    val1 = bits[1]
+    val1 = parser.compile_filter(bits[1])
     #todo - other_args?
-    other_args = bits[2:]
+    other_args = [parser.compile_filter(bit) for bit in bits[2:]]
     return IfActiveNode(val1, other_args, nodelist_true, nodelist_false)
 ifactive = register.tag(ifactive)
 

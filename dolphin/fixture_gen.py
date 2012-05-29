@@ -13,6 +13,9 @@ def test_base_flags():
 def test_users():
     User.objects.create(username="registered")
     User.objects.create(username="staff", is_staff=True)
+    u = User(username='admin', is_staff=True, is_superuser=True)
+    u.set_password('admin')
+    u.save()
 
 @fixture_generator(FeatureFlag, requires=["dolphin.test_base_flags", "dolphin.test_users"])
 def test_user_flags():

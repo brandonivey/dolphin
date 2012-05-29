@@ -4,6 +4,19 @@
         <title>Test Page</title>
     </head>
     <body>
-        <h1> Active flags:</h1> {% active_tags %}
+        <h1> Active flags:</h1> {% active_tags %}<br/><br/>
+        <table>
+            <tr>
+                <th>Flag Name</th>
+                <th>Status</th>
+            </tr>
+            {% for flag in object_list %}
+            <tr>
+                <td>{{flag.name}}</td>
+                <td>{% ifactive flag.name %}Enabled{% else %}Disabled {% endifactive %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+            
     </body>
 </html>

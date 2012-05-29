@@ -12,7 +12,7 @@ disable_selected.short_description = "Disable selected flags"
 
 
 class FeatureFlagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'enabled', 'registered_only', 'limit_to_users')
+    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_users')
     actions = [enable_selected, disable_selected]
     fieldsets = (
         (None, {
