@@ -1,5 +1,6 @@
 from .models import FeatureFlag
 from .middleware import RequestStoreMiddleware
+from .utils import calc_dist, get_ip, get_geoip_coords
 
 class Backend(object):
     """A base backend"""
@@ -23,23 +24,39 @@ class DjangoBackend(Backend):
             return kwargs['request']
         return RequestStoreMiddleware.request()
 
+    def _in_circle(self, ff, lat, lon):
+        dist = calc_dist(ff.center_lat, ff.center_lon, lat, lon)
+        if dist <= ff.radius:
+            return True
+        return False
+
     def _flag_is_active(self, ff, request):
         if not ff.enabled:
             return False
 
+        enabled = True
         if ff.registered_only or ff.limit_to_users or ff.staff_only:
             #user based flag
-            if not request: return False #TODO error here?
-            if not request.user.is_authenticated():
-                return False
-            if ff.limit_to_users:
-                return bool(ff.users.filter(id=request.user.id).exists())
-            if ff.staff_only:
-                return request.user.is_staff
-            if ff.registered_only:
-                return True
+            if not request: enabled = False #TODO error here?
+            elif not request.user.is_authenticated():
+                enabled = False
+            else:
+                if ff.limit_to_users:
+                    enabled = enabled and bool(ff.users.filter(id=request.user.id).exists())
+                if ff.staff_only:
+                    enabled = enabled and request.user.is_staff
+                if ff.registered_only:
+                    enabled = enabled and True
 
-        return True
+        if ff.enable_geo:
+            #distance based
+            x = get_geoip_coords(get_ip(request))
+            if x is None:
+                enabled = False
+            else:
+                enabled = enabled and self._in_circle(ff, x[0], x[1])
+
+        return enabled
 
     def is_active(self, key, *args, **kwargs):
         try:

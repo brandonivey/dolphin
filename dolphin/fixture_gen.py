@@ -1,6 +1,7 @@
 from fixture_generator import fixture_generator
 
 from django.contrib.auth.models import User
+from django.contrib.gis.geos import fromstr
 
 from .models import FeatureFlag
 
@@ -24,3 +25,8 @@ def test_user_flags():
     ff = FeatureFlag.objects.create(name="selected_users", enabled=True, limit_to_users=True)
     ff.users.add(User.objects.get(username="registered"))
     ff.save()
+
+@fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])
+def test_regional_flags():
+    FeatureFlag.objects.create(name='regional', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=100)
+    FeatureFlag.objects.create(name='regional_5', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=5)

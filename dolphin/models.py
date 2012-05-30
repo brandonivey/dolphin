@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+#from django.contrib.gis.db import models TODO
+
 
 class FeatureFlag(models.Model):
     name = models.SlugField(max_length=255, unique=True)
@@ -10,6 +12,12 @@ class FeatureFlag(models.Model):
     staff_only = models.BooleanField(blank=True, default=False, help_text="Limit to staff users")
     limit_to_users = models.BooleanField(blank=True, default=False, help_text="Limit to specific users")
     users = models.ManyToManyField(User, blank=True) #TODO - do we want this to be many to many? possibly comma delimited charfield or something
+
+    #geolocation
+    enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation") #TODO - admin verification of fields
+    center_lat = models.FloatField(null=True, help_text="Latitude center of circle")
+    center_lon = models.FloatField(null=True, help_text="Longitude center of circle")
+    radius = models.FloatField(null=True, help_text="Distance in miles") #TODO - allow km/meters/etc
 
     def __unicode__(self):
         return self.name

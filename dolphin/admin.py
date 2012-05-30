@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf import settings
 
 from .models import FeatureFlag
 
@@ -20,10 +21,16 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
         ('User flags', {
             'fields': ('registered_only', 'staff_only', 'limit_to_users', 'users')
-        })
+        }),
     )
 
-
     #TODO - add checking to make sure only one user checkbox is enabled
+
+if getattr(settings, "DOLPHIN_USE_GIS", True):
+    FeatureFlagAdmin.fieldsets += (
+        ('Geolocation', {
+            'fields': ('center_lat', 'center_lon', 'radius')
+        }),
+    )
 
 admin.site.register(FeatureFlag, FeatureFlagAdmin)
