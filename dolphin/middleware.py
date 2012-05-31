@@ -1,10 +1,10 @@
 import threading
 
 class LocalStore(threading.local):
-    def __set__(self, key, val):
+    def __setitem__(self, key, val):
         self.__dict__[key] = val
 
-    def __get__(self, key):
+    def __getitem__(self, key):
         return self.__dict__[key]
 
     def get(self, key, default=None):
