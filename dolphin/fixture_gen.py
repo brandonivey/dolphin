@@ -7,8 +7,8 @@ from .models import FeatureFlag
 
 @fixture_generator(FeatureFlag)
 def test_base_flags():
-    FeatureFlag.objects.create(name="enabled", enabled=True)
-    FeatureFlag.objects.create(name="disabled", enabled=False)
+    FeatureFlag.objects.create(id=1, name="enabled", enabled=True)
+    FeatureFlag.objects.create(id=2, name="disabled", enabled=False)
 
 @fixture_generator(User)
 def test_users():
@@ -20,13 +20,19 @@ def test_users():
 
 @fixture_generator(FeatureFlag, requires=["dolphin.test_base_flags", "dolphin.test_users"])
 def test_user_flags():
-    FeatureFlag.objects.create(name="registered_only", enabled=True, registered_only=True)
-    FeatureFlag.objects.create(name="staff_only", enabled=True, staff_only=True)
-    ff = FeatureFlag.objects.create(name="selected_users", enabled=True, limit_to_users=True)
+    FeatureFlag.objects.create(id=3, name="registered_only", enabled=True, registered_only=True)
+    FeatureFlag.objects.create(id=4, name="staff_only", enabled=True, staff_only=True)
+    ff = FeatureFlag.objects.create(id=5, name="selected_users", enabled=True, limit_to_users=True)
     ff.users.add(User.objects.get(username="registered"))
     ff.save()
 
 @fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])
 def test_regional_flags():
-    FeatureFlag.objects.create(name='regional', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=100)
-    FeatureFlag.objects.create(name='regional_5', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=5)
+    FeatureFlag.objects.create(id=6, name='regional', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=100)
+    FeatureFlag.objects.create(id=7, name='regional_5', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=5)
+
+
+@fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])
+def test_ab_flags():
+    FeatureFlag.objects.create(id=8, name='ab_random', enabled=True, random=True, is_ab_test=True)
+    FeatureFlag.objects.create(id=9, name='max', enabled=True, maximum_b_tests=5, is_ab_test=True)

@@ -1,5 +1,12 @@
+import datetime
+import random
+import time
+import pytz
+
+from django.db.models import F
+
 from .models import FeatureFlag
-from .middleware import RequestStoreMiddleware
+from .middleware import LocalStoreMiddleware
 from .utils import calc_dist, get_ip, get_geoip_coords
 
 class Backend(object):
@@ -22,7 +29,7 @@ class DjangoBackend(Backend):
     def _get_request(self, **kwargs):
         if kwargs.get('request', None) is not None:
             return kwargs['request']
-        return RequestStoreMiddleware.request()
+        return LocalStoreMiddleware.request()
 
     def _in_circle(self, ff, lat, lon):
         dist = calc_dist(ff.center_lat, ff.center_lon, lat, lon)
@@ -48,6 +55,8 @@ class DjangoBackend(Backend):
                 if ff.registered_only:
                     enabled = enabled and True
 
+        if enabled == False: return enabled
+
         if ff.enable_geo:
             #distance based
             x = get_geoip_coords(get_ip(request))
@@ -55,6 +64,36 @@ class DjangoBackend(Backend):
                 enabled = False
             else:
                 enabled = enabled and self._in_circle(ff, x[0], x[1])
+
+        if enabled == False: return enabled
+
+        if ff.is_ab_test:
+            if ff.random:
+                random.seed(time.time())
+                enabled = enabled and bool(random.randrange(0, 2))
+
+            if ff.b_test_start:
+                if ff.b_test_start.tzinfo is not None:
+                    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                else:
+                    now = datetime.datetime.now()
+                enabled = enabled and now >= ff.b_test_start
+
+            if ff.b_test_end:
+                if ff.b_test_end.tzinfo is not None:
+                    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                else:
+                    now = datetime.datetime.now()
+                enabled = enabled and now <= ff.b_test_end
+
+            if ff.maximum_b_tests:
+                #TODO - is this worth becoming atomic and locking?
+                maxt = ff.maximum_b_tests
+                if ff.current_b_tests >= ff.maximum_b_tests:
+                    enabled = False
+
+                if enabled:
+                    FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
 
         return enabled
 

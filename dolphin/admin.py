@@ -13,7 +13,7 @@ disable_selected.short_description = "Disable selected flags"
 
 
 class FeatureFlagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_users')
+    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_users', 'enable_geo', 'is_ab_test')
     actions = [enable_selected, disable_selected]
     fieldsets = (
         (None, {
@@ -21,6 +21,9 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
         ('User flags', {
             'fields': ('registered_only', 'staff_only', 'limit_to_users', 'users')
+        }),
+        ('A/B Tests', {
+            'fields': ('is_ab_test', 'random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
         }),
     )
 
@@ -32,5 +35,6 @@ if getattr(settings, "DOLPHIN_USE_GIS", True):
             'fields': ('center_lat', 'center_lon', 'radius')
         }),
     )
+
 
 admin.site.register(FeatureFlag, FeatureFlagAdmin)
