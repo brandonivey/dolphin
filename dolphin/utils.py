@@ -20,7 +20,10 @@ def get_ip(request):
     Assumes it's set correctly by middleware.
     """
     #TODO - document this
-    return request.META.get('REMOTE_ADDR', "0.0.0.0")
+    #use hasattr to avoid fake requests in tests
+    if hasattr(request, 'META'):
+        return request.META.get('REMOTE_ADDR', "0.0.0.0")
+    return '0.0.0.0'
 
 def get_geoip_coords(ip):
     """

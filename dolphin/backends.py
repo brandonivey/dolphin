@@ -4,6 +4,8 @@ import time
 import pytz
 
 from django.db.models import F
+from django.utils.datastructures import SortedDict
+from django.conf import settings
 
 from .models import FeatureFlag
 from .middleware import LocalStoreMiddleware
@@ -37,9 +39,41 @@ class DjangoBackend(Backend):
             return True
         return False
 
+    def _once_per_req(self, name, key, func):
+        d = LocalStoreMiddleware.local.setdefault(name, {})
+
+        if key in d:
+            return d[key]
+
+        val = func()
+        d[key] = val
+        return val
+
+    def _flag_key(self, ff, request):
+        d = SortedDict()
+        d['name'] = ff.name
+        d['ip_address'] = get_ip(request)
+        #avoid fake requests for tests
+        if hasattr(request, 'user'):
+            d['user_id'] = request.user.id
+        else:
+            d['user_id'] = None
+        return tuple(d.values())
+
     def _flag_is_active(self, ff, request):
+        key = self._flag_key(ff, request)
+        flags = LocalStoreMiddleware.local.setdefault('flags', {})
+        store_flags = getattr(settings, 'DOLPHIN_STORE_FLAGS', True)
+
+        if store_flags and key in flags:
+            return flags[key]
+
+        def store(val):
+            if store_flags: flags[key] = val
+            return val
+
         if not ff.enabled:
-            return False
+            return store(False)
 
         enabled = True
         if ff.registered_only or ff.limit_to_users or ff.staff_only:
@@ -55,7 +89,7 @@ class DjangoBackend(Backend):
                 if ff.registered_only:
                     enabled = enabled and True
 
-        if enabled == False: return enabled
+        if enabled == False: return store(enabled)
 
         if ff.enable_geo:
             #distance based
@@ -65,12 +99,16 @@ class DjangoBackend(Backend):
             else:
                 enabled = enabled and self._in_circle(ff, x[0], x[1])
 
-        if enabled == False: return enabled
+        if enabled == False: return store(enabled)
 
         if ff.is_ab_test:
             if ff.random:
-                random.seed(time.time())
-                enabled = enabled and bool(random.randrange(0, 2))
+                #doing this so that the random key is only calculated once per request
+                def rand_bool():
+                    random.seed(time.time())
+                    return bool(random.randrange(0, 2))
+
+                enabled = enabled and self._once_per_req('random', ff.name, rand_bool)
 
             if ff.b_test_start:
                 if ff.b_test_start.tzinfo is not None:
@@ -88,20 +126,22 @@ class DjangoBackend(Backend):
 
             if ff.maximum_b_tests:
                 #TODO - is this worth becoming atomic and locking?
-                maxt = ff.maximum_b_tests
-                if ff.current_b_tests >= ff.maximum_b_tests:
-                    enabled = False
+                def maxb():
+                    maxt = ff.maximum_b_tests
+                    if ff.current_b_tests >= ff.maximum_b_tests:
+                        return False
 
-                if enabled:
-                    FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
+                    if enabled:
+                        FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
+                    return True
+                enabled = enabled and self._once_per_req('maxb', ff.name, maxb)
 
-        return enabled
+        return store(enabled)
 
     def is_active(self, key, *args, **kwargs):
         try:
             ff = FeatureFlag.objects.get(name=key)
             req = self._get_request(**kwargs)
-
             return self._flag_is_active(ff, req)
 
         except FeatureFlag.DoesNotExist:
@@ -120,7 +160,4 @@ class DjangoBackend(Backend):
         flags = FeatureFlag.objects.filter(enabled=True)
         req = self._get_request(**kwargs)
         registered = req and req.user.is_authenticated()
-        if not registered:
-            return flags.filter(registered_only=False, staff_only=False, limit_to_users=False)
-
         return [ff for ff in flags if self._flag_is_active(ff, req)]

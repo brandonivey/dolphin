@@ -1,16 +1,13 @@
 import re
 
 from django.contrib.auth.models import User
-from django.test import TestCase
 from django.template import Context, Template
 
-from dolphin.models import FeatureFlag
+from dolphin.middleware import LocalStoreMiddleware
+from dolphin.tests.flipper import BaseTest
 
-class ActiveTagTest(TestCase):
+class ActiveTagTest(BaseTest):
     fixtures = ['base_flags.json']
-
-    def tearDown(self):
-        FeatureFlag.objects.all().delete()
 
     def check_res(self, text, expected):
         t = Template(text)
@@ -56,8 +53,11 @@ class ActiveTagTest(TestCase):
         expected_resp = "Test5"
         self.check_res(text, expected_resp)
 
-class FlagListTest(TestCase):
+class FlagListTest(BaseTest):
     fixtures = ['users.json', 'user_flags.json', 'base_flags.json']
+
+    def clear(self):
+        LocalStoreMiddleware.local.clear()
 
     def _fake_request(self):
         req = type("Request", (object,), {})()
@@ -83,6 +83,7 @@ class FlagListTest(TestCase):
         self.assertEqual(res,
                          "enabled,registered_only,selected_users")
 
+        self.clear()
         req.user = User.objects.get(username='staff')
         c = Context({'request':req})
         t = Template(text)

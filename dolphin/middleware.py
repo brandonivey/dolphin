@@ -7,10 +7,23 @@ class LocalStore(threading.local):
     def __getitem__(self, key):
         return self.__dict__[key]
 
+    def __delitem__(self, key):
+        if key in self.__dict__:
+            del self.__dict__[key]
+
+    def clear(self):
+        self.__dict__.clear()
+
     def get(self, key, default=None):
         if key in self.__dict__:
             return self.__dict__[key]
         return default
+
+    def setdefault(self, key, value):
+        if key not in self.__dict__:
+            self.__dict__[key] = value
+        return self.__dict__[key]
+
 
 class LocalStoreMiddleware(object):
     local = LocalStore()
@@ -22,7 +35,7 @@ class LocalStoreMiddleware(object):
         return LocalStoreMiddleware.local.get('request')
 
     def clear(self):
-        self.local.__dict__.clear()
+        self.local.clear()
 
     def process_request(self, request):
         self.local['request'] = request

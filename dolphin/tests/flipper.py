@@ -6,20 +6,22 @@ from django.contrib.auth.models import User, AnonymousUser
 
 from dolphin import flipper
 from dolphin.models import FeatureFlag
+from dolphin.middleware import LocalStoreMiddleware
 
 
-class IsActiveTest(TestCase):
+
+class BaseTest(TestCase):
+    def _fake_request(self):
+        req = type("Request", (object,), {})()
+        return req
+
+class IsActiveTest(BaseTest):
     fixtures = ['base_flags.json']
 
     def test_is_active(self):
         self.assertTrue(flipper.is_active("enabled"))
         self.assertFalse(flipper.is_active("disabled"))
         self.assertFalse(flipper.is_active("missing"))
-
-class BaseTest(TestCase):
-    def _fake_request(self):
-        req = type("Request", (object,), {})()
-        return req
 
 class UserFlagsTest(BaseTest):
     fixtures = ['users.json', 'user_flags.json']
@@ -106,4 +108,6 @@ class ABTest(BaseTest):
         """Tests that the max run for A/B tests is working"""
         for i in xrange(0, 5):
             self.assertTrue(flipper.is_active('max'))
+            LocalStoreMiddleware.local.clear()
+
         self.assertFalse(flipper.is_active('max'))
