@@ -27,6 +27,7 @@ class UserFlagsTest(BaseTest):
     fixtures = ['users.json', 'user_flags.json']
 
     def test_registered(self):
+        """Tests the registered user only flags"""
         req = self._fake_request()
         req.user = User.objects.get(username='registered')
         #registered user
@@ -36,6 +37,7 @@ class UserFlagsTest(BaseTest):
         self.assertFalse(flipper.is_active("registered_only", request=req))
 
     def test_staff(self):
+        """Tests the staff only flags"""
         req = self._fake_request()
         req.user = User.objects.get(username='registered')
         #registered user
@@ -48,6 +50,7 @@ class UserFlagsTest(BaseTest):
         self.assertTrue(flipper.is_active("staff_only", request=req))
 
     def test_users(self):
+        """Tests the user specific flags"""
         req = self._fake_request()
         user = User.objects.get(username='registered')
         req.user = user
@@ -63,6 +66,7 @@ class GeoIPTest(BaseTest):
     fixtures = ['regional_flags.json']
 
     def test_regional_flag(self):
+        """Tests that the regional flag works properly for IP address detection and distance"""
         req = self._fake_request()
         req.META = {'REMOTE_ADDR':'4.2.2.2'}
         #within 100 miles of coord (69 or so)

@@ -50,6 +50,10 @@ class DjangoBackend(Backend):
         return val
 
     def _flag_key(self, ff, request):
+        """
+        This creates a tuple key with various values to uniquely identify the request
+        and flag
+        """
         d = SortedDict()
         d['name'] = ff.name
         d['ip_address'] = get_ip(request)
@@ -61,6 +65,12 @@ class DjangoBackend(Backend):
         return tuple(d.values())
 
     def _flag_is_active(self, ff, request):
+        """
+        Checks the flag to see if it should be enabled or not.
+        Encompases A/B tests, regional, and user based flags as well.
+        Will only calculate random and max flags once per request.
+        Will store flags for the request if DOLPHIN_STORE_FLAGS is True (default).
+        """
         key = self._flag_key(ff, request)
         flags = LocalStoreMiddleware.local.setdefault('flags', {})
         store_flags = getattr(settings, 'DOLPHIN_STORE_FLAGS', True)
@@ -69,6 +79,7 @@ class DjangoBackend(Backend):
             return flags[key]
 
         def store(val):
+            """quick wrapper to store the flag results if it needs to"""
             if store_flags: flags[key] = val
             return val
 
@@ -102,6 +113,7 @@ class DjangoBackend(Backend):
         if enabled == False: return store(enabled)
 
         if ff.is_ab_test:
+            #A/B flags
             if ff.random:
                 #doing this so that the random key is only calculated once per request
                 def rand_bool():
@@ -111,6 +123,7 @@ class DjangoBackend(Backend):
                 enabled = enabled and self._once_per_req('random', ff.name, rand_bool)
 
             if ff.b_test_start:
+                #start date
                 if ff.b_test_start.tzinfo is not None:
                     now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
                 else:
@@ -118,6 +131,7 @@ class DjangoBackend(Backend):
                 enabled = enabled and now >= ff.b_test_start
 
             if ff.b_test_end:
+                #end date
                 if ff.b_test_end.tzinfo is not None:
                     now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
                 else:
@@ -125,6 +139,7 @@ class DjangoBackend(Backend):
                 enabled = enabled and now <= ff.b_test_end
 
             if ff.maximum_b_tests:
+                #max B tests
                 #TODO - is this worth becoming atomic and locking?
                 def maxb():
                     maxt = ff.maximum_b_tests
@@ -139,6 +154,7 @@ class DjangoBackend(Backend):
         return store(enabled)
 
     def is_active(self, key, *args, **kwargs):
+        """checks if a flag is active by the name of key"""
         try:
             ff = FeatureFlag.objects.get(name=key)
             req = self._get_request(**kwargs)
@@ -148,13 +164,19 @@ class DjangoBackend(Backend):
             return False
 
     def set_active(self, key, val, *args, **kwargs):
+        """sets the flag by name of key as enabled"""
         f, is_new = FeatureFlag.objects.get_or_create(name=key, defaults={'enabled':val})
         if not is_new and f.enabled != val:
             f.enabled = val
             f.save()
 
+        #just delete the store and make them recalculate
+        del LocalStoreMiddleware.local['flags']
+
     def delete(self, key, *args, **kwargs):
         FeatureFlag.objects.filter(name=key).delete()
+        #just delete the store and make them recalculate
+        del LocalStoreMiddleware.local['flags']
 
     def active_flags(self, *args, **kwargs):
         flags = FeatureFlag.objects.filter(enabled=True)
