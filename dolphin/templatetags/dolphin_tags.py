@@ -6,6 +6,7 @@ from dolphin import flipper
 
 register = template.Library()
 
+
 class IfActiveNode(Node):
     child_nodelists = ('nodelist_true', 'nodelist_false')
 
@@ -25,6 +26,7 @@ class IfActiveNode(Node):
             return self.nodelist_true.render(context)
         return self.nodelist_false.render(context)
 
+
 def ifactive(parser, token):
     bits = list(token.split_contents())
     if len(bits) < 2:
@@ -38,10 +40,11 @@ def ifactive(parser, token):
     else:
         nodelist_false = NodeList()
     val1 = parser.compile_filter(bits[1])
-    #todo - other_args?
+    #TODO - other_args?
     other_args = [parser.compile_filter(bit) for bit in bits[2:]]
     return IfActiveNode(val1, other_args, nodelist_true, nodelist_false)
 ifactive = register.tag(ifactive)
+
 
 @register.simple_tag(takes_context=True)
 def active_tags(context):

@@ -19,7 +19,6 @@ def get_ip(request):
     Returns the REMOTE_ADDR of the request.
     Assumes it's set correctly by middleware.
     """
-    #TODO - document this
     #use hasattr to avoid fake requests in tests
     if hasattr(request, 'META'):
         return request.META.get('REMOTE_ADDR', "0.0.0.0")
@@ -29,7 +28,6 @@ def get_geoip_coords(ip):
     """
     Returns (lat, lon) for the ip if it's valid or None
     """
-    #TODO - document this
     if getattr(settings, 'DOLPHIN_USE_GIS', True) != True:
         return None
 

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.conf import settings
+from django import forms
 
 from .models import FeatureFlag
 
@@ -26,8 +27,6 @@ class FeatureFlagAdmin(admin.ModelAdmin):
             'fields': ('is_ab_test', 'random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
         }),
     )
-
-    #TODO - add checking to make sure only one user checkbox is enabled
 
 if getattr(settings, "DOLPHIN_USE_GIS", True):
     FeatureFlagAdmin.fieldsets += (

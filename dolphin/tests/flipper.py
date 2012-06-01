@@ -91,6 +91,11 @@ class GeoIPTest(BaseTest):
     fixtures = ['regional_flags.json']
 
     def test_regional_flag(self):
+        from django.contrib.gis import geoip
+        if not geoip.HAS_GEOIP:
+            print 'GIS not installed. Skipping GeoIPTest'
+            return
+
         """Tests that the regional flag works properly for IP address detection and distance"""
         req = self._fake_request()
         req.META = {'REMOTE_ADDR':'4.2.2.2'}
@@ -130,9 +135,15 @@ class ABTest(BaseTest):
         self.assertTrue(flipper.is_active('end_tomorrow'))
         self.assertFalse(flipper.is_active('end_passed'))
 
-    @mock.patch('random.random')
-    def test_random(self, random):
-        pass #TODO
+    @mock.patch('random.randrange')
+    def test_random(self, randrange):
+        """Tests that the random flag is working correctly"""
+        randrange.return_value = 1
+        self.assertTrue(flipper.is_active('ab_random'))
+
+        LocalStoreMiddleware.local.clear()
+        randrange.return_value = 0
+        self.assertFalse(flipper.is_active('ab_random'))
 
     def test_max(self):
         """Tests that the max run for A/B tests is working"""

@@ -90,7 +90,7 @@ class DjangoBackend(Backend):
         enabled = True
         if ff.registered_only or ff.limit_to_users or ff.staff_only:
             #user based flag
-            if not request: enabled = False #TODO error here?
+            if not request: enabled = False
             elif not request.user.is_authenticated():
                 enabled = False
             else:
@@ -142,6 +142,7 @@ class DjangoBackend(Backend):
             if ff.maximum_b_tests:
                 #max B tests
                 #TODO - is this worth becoming atomic and locking?
+
                 def maxb():
                     maxt = ff.maximum_b_tests
                     if ff.current_b_tests >= ff.maximum_b_tests:
