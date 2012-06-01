@@ -1,19 +1,20 @@
 import datetime
 import mock
 
-from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
+from django.http import Http404, HttpResponseRedirect
+from django.test import TestCase
 
 from dolphin import flipper
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 
 
-
 class BaseTest(TestCase):
     def _fake_request(self):
         req = type("Request", (object,), {})()
         return req
+
 
 class IsActiveTest(BaseTest):
     fixtures = ['base_flags.json']
@@ -22,6 +23,24 @@ class IsActiveTest(BaseTest):
         self.assertTrue(flipper.is_active("enabled"))
         self.assertFalse(flipper.is_active("disabled"))
         self.assertFalse(flipper.is_active("missing"))
+
+    def test_switch_is_active(self):
+        outer = "Outer"
+        f1 = lambda: "f1"
+        f2 = lambda: "f2"
+
+        wrapped_f1 = flipper.switch_is_active('disabled')(f1)
+        self.assertRaises(Http404, wrapped_f1)
+
+        wrapped_f1 = flipper.switch_is_active('disabled', alt=f2)(f1)
+        self.assertEquals(wrapped_f1(), "f2")
+
+        wrapped_f1 = flipper.switch_is_active('disabled', redirect='/')(f1)
+        self.assertTrue(isinstance(wrapped_f1(), HttpResponseRedirect))
+
+        wrapped_f1 = flipper.switch_is_active('enabled', redirect='/')(f1)
+        self.assertEquals(wrapped_f1(), "f1")
+
 
 class UserFlagsTest(BaseTest):
     fixtures = ['users.json', 'user_flags.json']
@@ -62,6 +81,7 @@ class UserFlagsTest(BaseTest):
         req.user = User.objects.get(username='staff')
         self.assertFalse(flipper.is_active('users', request=req))
 
+
 class GeoIPTest(BaseTest):
     fixtures = ['regional_flags.json']
 
@@ -82,6 +102,7 @@ class GeoIPTest(BaseTest):
         req.META = {'REMOTE_ADDR':'4.2.2.2'}
         #not within 5 miles of coord
         self.assertFalse(flipper.is_active('regional_5', request=req))
+
 
 class ABTest(BaseTest):
     fixtures = ['ab_flags.json']

@@ -11,15 +11,16 @@ from .models import FeatureFlag
 from .middleware import LocalStoreMiddleware
 from .utils import calc_dist, get_ip, get_geoip_coords
 
+
 class Backend(object):
     """A base backend"""
     def is_active(self, key, *args, **kwargs):
         raise NotImplementedError("Must be overriden by backend")
 
-    def set_active(self, key, val, *args, **kwargs):
+    def delete(self, key, *args, **kwargs):
         raise NotImplementedError("Must be overriden by backend")
 
-    def delete(self, key, *args, **kwargs):
+    def active_flags(self, key, *args, **kwargs):
         raise NotImplementedError("Must be overriden by backend")
 
 
@@ -155,6 +156,11 @@ class DjangoBackend(Backend):
 
     def is_active(self, key, *args, **kwargs):
         """checks if a flag is active by the name of key"""
+        #allows for the with() statement to override in tests
+        overrides = LocalStoreMiddleware.local.setdefault('overrides', {})
+        if key in overrides:
+            return overrides[key]
+
         try:
             ff = FeatureFlag.objects.get(name=key)
             req = self._get_request(**kwargs)
@@ -162,16 +168,6 @@ class DjangoBackend(Backend):
 
         except FeatureFlag.DoesNotExist:
             return False
-
-    def set_active(self, key, val, *args, **kwargs):
-        """sets the flag by name of key as enabled"""
-        f, is_new = FeatureFlag.objects.get_or_create(name=key, defaults={'enabled':val})
-        if not is_new and f.enabled != val:
-            f.enabled = val
-            f.save()
-
-        #just delete the store and make them recalculate
-        del LocalStoreMiddleware.local['flags']
 
     def delete(self, key, *args, **kwargs):
         FeatureFlag.objects.filter(name=key).delete()

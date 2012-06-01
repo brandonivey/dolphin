@@ -1,12 +1,11 @@
 from contextlib import contextmanager
-from . import flipper
 from .middleware import LocalStoreMiddleware
+
 
 @contextmanager
 def set_active(key, val):
-    active = flipper.is_active(key)
-    flipper.set_active(key, val)
-    del LocalStoreMiddleware.local['flags']
+    """Allows a flag to be switched to enabled"""
+    overrides = LocalStoreMiddleware.local.setdefault('overrides', {})
+    overrides[key] = val
     yield
-    del LocalStoreMiddleware.local['flags']
-    flipper.set_active(key, active)
+    del overrides[key]
