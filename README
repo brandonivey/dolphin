@@ -21,9 +21,15 @@ if flipper.is_active("flag_name"):
 else:
     do_something_else
 
+#a decorator
 @flipper.switch_is_active("flag_name")
 def view(request):
     return ...
+
+
+res = flipper.ifactive("flag_name", active_res, else_res) 
+# same as 
+res = active_res if flipper.is_active('flag_name') else else_res
 
 switch_is_active also takes arguments redirect= and alt= to a url and a function
 respectively which will return if the flag isn't active.

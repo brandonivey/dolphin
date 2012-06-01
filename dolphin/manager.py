@@ -43,3 +43,9 @@ class FlagManager(object):
                     raise Http404('Switch %s is not active.'%key)
             return newf
         return wrap
+
+    def ifactive(self, key, active_var, else_var, **kwargs):
+        if self.is_active(key, **kwargs):
+            return active_var
+        else:
+            return else_var

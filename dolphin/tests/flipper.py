@@ -16,7 +16,7 @@ class BaseTest(TestCase):
         return req
 
 
-class IsActiveTest(BaseTest):
+class ActiveTest(BaseTest):
     fixtures = ['base_flags.json']
 
     def test_is_active(self):
@@ -40,6 +40,11 @@ class IsActiveTest(BaseTest):
 
         wrapped_f1 = flipper.switch_is_active('enabled', redirect='/')(f1)
         self.assertEquals(wrapped_f1(), "f1")
+
+    def test_ifactive(self):
+        self.assertEquals(flipper.ifactive('enabled', 'Active', 'Disabled'), 'Active')
+        self.assertEquals(flipper.ifactive('disabled', 'Active', 'Disabled'), 'Disabled')
+        self.assertEquals(flipper.ifactive('missing', 'Active', 'Disabled'), 'Disabled')
 
 
 class UserFlagsTest(BaseTest):
