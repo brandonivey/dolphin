@@ -1,0 +1,50 @@
+Dolphin is a feature flagging library for django that also doubles as 
+an A/B library and geoip based switch. It was heavily inspired 
+by Gargoyle (https://github.com/disqus/gargoyle)
+
+
+Setup:
+
+Add "dolphin.middleware.LocalStoreMiddleware" to your MIDDLEWARE_CLASSES.
+Ensure that REMOTE_ADDR is pointing to the correct IP address. If not,
+you will have to otherwise patch dolphin.utils.get_ip.
+
+
+Usage:
+
+This allows dolphin to always be aware of the request object, and it will
+prevent dolphin from testing random flags more than once per request.
+
+from dolphin import flipper
+if flipper.is_active("flag_name"):
+    do_something()
+else:
+    do_something_else
+
+@flipper.switch_is_active("flag_name")
+def view(request):
+    return ...
+
+switch_is_active also takes arguments redirect= and alt= to a url and a function
+respectively which will return if the flag isn't active.
+
+In a template:
+
+{% load dolphin_tags %}
+{% ifactive "keyname" %}
+Active
+{% else %}
+Not active
+{% endifactive %}
+
+There's also a template tag that will list active flags.
+{% active_tags %}
+
+
+Settings (and default):
+DOLPHIN_USE_GIS=True      #Disables or enables GIS for geoip. This assumes that you
+                           also have GEOIP_PATH set up to point to a proper city file,
+                           and the GIS library installed.
+
+DOLPHIN_STORE_FLAGS=True  #Store flag results for an entire request, based on the user,
+                           key name, and ip address.
