@@ -7,10 +7,17 @@ class FlagManager(object):
     """
     def __init__(self, backend):
         self.backend = backend
+        self.registered_checks = {}
 
     def is_active(self, key, *args, **kwargs):
         """Tests if the flag is active"""
-        return self.backend.is_active(key, *args, **kwargs)
+        ret = self.backend.is_active(key, *args, **kwargs)
+        if not ret: return False
+        if key in self.registered_checks:
+            for check in self.registered_checks[key]:
+                if not check(key, **kwargs):
+                    return False
+        return True
 
     def delete(self, key, *args, **kwargs):
         """Deletes the FeatureFlag"""
@@ -49,3 +56,10 @@ class FlagManager(object):
             return active_var
         else:
             return else_var
+
+    def register_check(self, key, flag):
+        """
+        Allows you to register custom flags. The flag should be a function that returns True or False
+        given the key and **kwargs
+        """
+        self.registered_checks.setdefault(key, []).append(flag)

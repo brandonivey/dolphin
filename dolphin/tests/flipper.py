@@ -152,3 +152,18 @@ class ABTest(BaseTest):
             LocalStoreMiddleware.local.clear()
 
         self.assertFalse(flipper.is_active('max'))
+
+class CustomFlagTest(BaseTest):
+    fixtures = ['base_flags.json']
+
+    def test_enabled_custom_flag(self):
+        #base test
+        self.assertTrue(flipper.is_active("enabled"))
+        flipper.register_check('enabled', lambda x, **kwargs: True)
+        flipper.register_check('disabled', lambda x, **kwargs: True)
+        self.assertTrue(flipper.is_active('enabled'))
+        self.assertFalse(flipper.is_active('disabled'))
+
+
+        flipper.register_check('enabled', lambda x, **kwargs: False)
+        self.assertFalse(flipper.is_active('enabled'))
