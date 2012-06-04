@@ -15,6 +15,7 @@ class FlagManager(object):
         if not ret: return False
         if key in self.registered_checks:
             for check in self.registered_checks[key]:
+                kwargs['backend'] = self.backend
                 if not check(key, **kwargs):
                     return False
         return True

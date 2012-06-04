@@ -1,56 +1,97 @@
-Dolphin is a feature flagging library for django that also doubles as 
-an A/B library and geoip based switch. It was heavily inspired 
-by Gargoyle (https://github.com/disqus/gargoyle)
+Dolphin is a feature flagging library for django that also doubles as
+an A/B library and geoip based switch. It was heavily inspired by
+Gargoyle (https://github.com/disqus/gargoyle).
 
 
-Setup:
+Features
+========
 
-Add "dolphin.middleware.LocalStoreMiddleware" to your MIDDLEWARE_CLASSES.
-Ensure that REMOTE_ADDR is pointing to the correct IP address. If not,
-you will have to otherwise patch dolphin.utils.get_ip.
+* Basic GeoIP location detection using django's GIS library
 
+* Random A/B testing
 
-Usage:
+* Limits on A/B testing
 
-This allows dolphin to always be aware of the request object, and it will
-prevent dolphin from testing random flags more than once per request.
+* Custom flag options
 
-from dolphin import flipper
-if flipper.is_active("flag_name"):
-    do_something()
-else:
-    do_something_else
+Setup
+*****
 
-#a decorator
-@flipper.switch_is_active("flag_name")
-def view(request):
-    return ...
+1. Add "dolphin.middleware.LocalStoreMiddleware" to your
+   MIDDLEWARE_CLASSES. This allows per-request random testing and per-
+   request caching.
 
+2. Add "dolphin" to INSTALLED_APPS
 
-res = flipper.ifactive("flag_name", active_res, else_res) 
-# same as 
-res = active_res if flipper.is_active('flag_name') else else_res
+3. Ensure that REMOTE_ADDR is pointing to the correct IP address. If
+   not, you will have to otherwise patch dolphin.utils.get_ip to use
+   geoip.
 
-switch_is_active also takes arguments redirect= and alt= to a url and a function
-respectively which will return if the flag isn't active.
+4. Load database table using manage.py, either via syncdb or migrate
+   dolphin if using south.
+
+5. If you wish to use geoip based flags, your GEOIP_PATH and GIS
+   library must be set up correctly.
+
+Usage
+*****
+
+There are multiple ways to use dolphin. The first is with a basic if
+statement:
+
+   from dolphin import flipper
+   if flipper.is_active("flag_name"):
+       do_something()
+   else:
+       do_something_else
+
+There is also a decorator that allows redirects, other view functions
+to be called, or just a 404 by default:
+
+   @flipper.switch_is_active("flag_name")
+   def view(request):
+       return ...
+
+   @flipper.switch_is_active("flag_name", redirect="/")
+   def view2(request):
+       return ...
+
+   @flipper.switch_is_active("flag_name", alt=view1)
+   def view3(request):
+       return ...
 
 In a template:
 
-{% load dolphin_tags %}
-{% ifactive "keyname" %}
-Active
-{% else %}
-Not active
-{% endifactive %}
+   {% load dolphin_tags %}
+   {% ifactive "keyname" %}
+   Active
+   {% else %}
+   Not active
+   {% endifactive %}
 
-There's also a template tag that will list active flags.
-{% active_tags %}
+There's also a template tag that will list active flags as a comma
+delimited list:
 
+   {% active_tags %}
 
-Settings (and default):
-DOLPHIN_USE_GIS=True      #Disables or enables GIS for geoip. This assumes that you
-                           also have GEOIP_PATH set up to point to a proper city file,
-                           and the GIS library installed.
+Custom Tests
+************
 
-DOLPHIN_STORE_FLAGS=True  #Store flag results for an entire request, based on the user,
-                           key name, and ip address.
+Dolphin can also support custom tests. They are simply functions by
+the form of:
+
+   def test_func(key, **kwargs):
+       return True or False
+
+kwargs will contain the backend which can be used to get the request
+object if necessary (though depending on how the test is called, it
+may be passed as a keyword argument).
+
+Testing
+*******
+
+A test app is included for testing dolphin. It by default uses the
+sqlite3 backend. With south and mock installed, and
+DJANGO_SETTINGS_MODULE=testapp, running tests should be as simple as:
+
+   python manage.py test dolphin
