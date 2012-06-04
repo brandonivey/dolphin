@@ -127,10 +127,17 @@ INSTALLED_APPS = (
     'dolphin',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    'south'
+    'south',
+    'ajax_select',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+AJAX_LOOKUP_CHANNELS = {
+    'user': {'model':'auth.user', 'search_field':'username'}
+}
+AJAX_SELECT_BOOTSTRAP = True
+AJAX_SELECT_INLINES = 'inline'
 
 try:
     import fixture_generator

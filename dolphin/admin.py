@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.conf import settings
 from django import forms
+from ajax_select import make_ajax_form
 
 from .models import FeatureFlag
 
@@ -13,7 +14,9 @@ def disable_selected(modeladmin, request, queryset):
 disable_selected.short_description = "Disable selected flags"
 
 
+
 class FeatureFlagAdmin(admin.ModelAdmin):
+    form = make_ajax_form(FeatureFlag, {'users':'user'})
     list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_users', 'enable_geo', 'is_ab_test')
     actions = [enable_selected, disable_selected]
     fieldsets = (
