@@ -38,7 +38,7 @@ class FeatureFlagAdmin(admin.ModelAdmin):
             'fields': ('registered_only', 'staff_only', 'limit_to_users', 'users')
         }),
         ('A/B Tests', {
-            'fields': ('is_ab_test', 'random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
+            'fields': ('random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
         }),
     )
 

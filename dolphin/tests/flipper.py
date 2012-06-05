@@ -120,8 +120,8 @@ class ABTest(BaseTest):
     def test_start(self):
         """Tests that the start datetime for A/B tests is working"""
         now = datetime.datetime.now()
-        FeatureFlag.objects.create(name='start_passed', enabled=True, is_ab_test=True, b_test_start=now-datetime.timedelta(days=1))
-        FeatureFlag.objects.create(name='start_tomorrow', enabled=True, is_ab_test=True, b_test_start=now+datetime.timedelta(days=1))
+        FeatureFlag.objects.create(name='start_passed', enabled=True, b_test_start=now-datetime.timedelta(days=1))
+        FeatureFlag.objects.create(name='start_tomorrow', enabled=True, b_test_start=now+datetime.timedelta(days=1))
 
         self.assertTrue(flipper.is_active('start_passed'))
         self.assertFalse(flipper.is_active('start_tomorrow'))
@@ -129,8 +129,8 @@ class ABTest(BaseTest):
     def test_end(self):
         """Tests that the end datetime for A/B tests is working"""
         now = datetime.datetime.now()
-        FeatureFlag.objects.create(name='end_passed', enabled=True, is_ab_test=True, b_test_end=now-datetime.timedelta(days=1))
-        FeatureFlag.objects.create(name='end_tomorrow', enabled=True, is_ab_test=True, b_test_end=now+datetime.timedelta(days=1))
+        FeatureFlag.objects.create(name='end_passed', enabled=True, b_test_end=now-datetime.timedelta(days=1))
+        FeatureFlag.objects.create(name='end_tomorrow', enabled=True, b_test_end=now+datetime.timedelta(days=1))
 
         self.assertTrue(flipper.is_active('end_tomorrow'))
         self.assertFalse(flipper.is_active('end_passed'))

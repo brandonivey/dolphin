@@ -113,45 +113,44 @@ class DjangoBackend(Backend):
 
         if enabled == False: return store(enabled)
 
-        if ff.is_ab_test:
-            #A/B flags
-            if ff.random:
-                #doing this so that the random key is only calculated once per request
-                def rand_bool():
-                    random.seed(time.time())
-                    return bool(random.randrange(0, 2))
+        #A/B flags
+        if ff.random:
+            #doing this so that the random key is only calculated once per request
+            def rand_bool():
+                random.seed(time.time())
+                return bool(random.randrange(0, 2))
 
-                enabled = enabled and self._once_per_req('random', ff.name, rand_bool)
+            enabled = enabled and self._once_per_req('random', ff.name, rand_bool)
 
-            if ff.b_test_start:
-                #start date
-                if ff.b_test_start.tzinfo is not None:
-                    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-                else:
-                    now = datetime.datetime.now()
-                enabled = enabled and now >= ff.b_test_start
+        if ff.b_test_start:
+            #start date
+            if ff.b_test_start.tzinfo is not None:
+                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+            else:
+                now = datetime.datetime.now()
+            enabled = enabled and now >= ff.b_test_start
 
-            if ff.b_test_end:
-                #end date
-                if ff.b_test_end.tzinfo is not None:
-                    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-                else:
-                    now = datetime.datetime.now()
-                enabled = enabled and now <= ff.b_test_end
+        if ff.b_test_end:
+            #end date
+            if ff.b_test_end.tzinfo is not None:
+                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+            else:
+                now = datetime.datetime.now()
+            enabled = enabled and now <= ff.b_test_end
 
-            if ff.maximum_b_tests:
-                #max B tests
-                #TODO - is this worth becoming atomic and locking?
+        if ff.maximum_b_tests:
+            #max B tests
+            #TODO - is this worth becoming atomic and locking?
 
-                def maxb():
-                    maxt = ff.maximum_b_tests
-                    if ff.current_b_tests >= ff.maximum_b_tests:
-                        return False
+            def maxb():
+                maxt = ff.maximum_b_tests
+                if ff.current_b_tests >= ff.maximum_b_tests:
+                    return False
 
-                    if enabled:
-                        FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
-                    return True
-                enabled = enabled and self._once_per_req('maxb', ff.name, maxb)
+                if enabled:
+                    FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
+                return True
+            enabled = enabled and self._once_per_req('maxb', ff.name, maxb)
 
         return store(enabled)
 
