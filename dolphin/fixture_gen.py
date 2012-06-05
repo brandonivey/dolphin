@@ -34,5 +34,5 @@ def test_regional_flags():
 
 @fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])
 def test_ab_flags():
-    FeatureFlag.objects.create(id=8, name='ab_random', enabled=True, random=True, is_ab_test=True)
-    FeatureFlag.objects.create(id=9, name='max', enabled=True, maximum_b_tests=5, is_ab_test=True)
+    FeatureFlag.objects.create(id=8, name='ab_random', enabled=True, random=True)
+    FeatureFlag.objects.create(id=9, name='max', enabled=True, maximum_b_tests=5)

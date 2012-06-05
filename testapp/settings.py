@@ -134,7 +134,7 @@ INSTALLED_APPS = (
 )
 
 AJAX_LOOKUP_CHANNELS = {
-    'user': {'model':'auth.user', 'search_field':'username'}
+    'users': {'model':'auth.user', 'search_field':'username'}
 }
 AJAX_SELECT_BOOTSTRAP = True
 AJAX_SELECT_INLINES = 'inline'
