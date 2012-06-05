@@ -5,7 +5,6 @@ from geoposition.fields import GeopositionField
 from ajax_select import make_ajax_field
 
 from .models import FeatureFlag
-from .widgets import GoogleMapsWidget
 
 def enable_selected(modeladmin, request, queryset):
     queryset.update(enabled=True)
