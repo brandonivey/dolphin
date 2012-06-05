@@ -35,7 +35,7 @@ class DjangoBackend(Backend):
         return LocalStoreMiddleware.request()
 
     def _in_circle(self, ff, lat, lon):
-        dist = calc_dist(ff.center_lat, ff.center_lon, lat, lon)
+        dist = calc_dist(float(ff.center.latitude), float(ff.center.longitude), lat, lon)
         if dist <= ff.radius:
             return True
         return False

@@ -6,8 +6,7 @@ version = '0.1'
 setup(name='dolphin',
       version=version,
       description="A feature flagging library for Django",
-      long_description="""\
-A feature flagging and A/B testing library for Django""",
+      long_description="""A feature flagging and A/B testing library for Django""",
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='feature-flipping django',
       author='Jeremy Self',
@@ -18,7 +17,7 @@ A feature flagging and A/B testing library for Django""",
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'pytz', 'mock', 
+          'pytz', 'mock', 'django-geoposition'
           # -*- Extra requirements: -*-
       ],
       entry_points="""

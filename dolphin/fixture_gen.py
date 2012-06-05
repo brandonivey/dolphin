@@ -1,7 +1,8 @@
-from fixture_generator import fixture_generator
 
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import fromstr
+from fixture_generator import fixture_generator
+from geoposition import Geoposition
 
 from .models import FeatureFlag
 
@@ -28,8 +29,8 @@ def test_user_flags():
 
 @fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])
 def test_regional_flags():
-    FeatureFlag.objects.create(id=6, name='regional', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=100)
-    FeatureFlag.objects.create(id=7, name='regional_5', enabled=True, enable_geo=True, center_lat=37, center_lon= -97, radius=5)
+    FeatureFlag.objects.create(id=6, name='regional', enabled=True, enable_geo=True, center=Geoposition(37, -97), radius=100)
+    FeatureFlag.objects.create(id=7, name='regional_5', enabled=True, enable_geo=True, center=Geoposition(37, -97), radius=5)
 
 
 @fixture_generator(FeatureFlag, requires=['dolphin.test_base_flags'])

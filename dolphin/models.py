@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from geoposition.fields import GeopositionField
 
 
 class FeatureFlag(models.Model):
@@ -14,8 +15,7 @@ class FeatureFlag(models.Model):
 
     #geolocation
     enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation") #TODO - admin verification of fields
-    center_lat = models.FloatField(blank=True, null=True, help_text="Latitude center of circle")
-    center_lon = models.FloatField(blank=True, null=True, help_text="Longitude center of circle")
+    center = GeopositionField(null=True)
     radius = models.FloatField(blank=True, null=True, help_text="Distance in miles") #TODO - allow km/meters/etc
 
     #A/B testing stuff

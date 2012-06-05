@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.conf import settings
 from django import forms
+from geoposition.fields import GeopositionField
 from ajax_select import make_ajax_field
 
 from .models import FeatureFlag
@@ -16,9 +17,7 @@ disable_selected.short_description = "Disable selected flags"
 
 
 class FeatureFlagForm(forms.ModelForm):
-    center_lat = forms.FloatField(label="Center", required=False, widget = GoogleMapsWidget(
-        attrs={'width': 600, 'height': 400, 'longitude_id':'id_center_long'}))
-    center_lon = forms.FloatField(widget = forms.HiddenInput(), required=False)
+    center = GeopositionField()
     users = make_ajax_field(FeatureFlag, 'users', 'users', show_help_text = False, required=False)
 
     class Meta:
@@ -45,7 +44,7 @@ class FeatureFlagAdmin(admin.ModelAdmin):
 if getattr(settings, "DOLPHIN_USE_GIS", True):
     FeatureFlagAdmin.fieldsets += (
         ('Geolocation', {
-            'fields': ('enable_geo', 'center_lat', 'radius', )
+            'fields': ('enable_geo', 'center', 'radius', )
         }),
     )
 
