@@ -27,7 +27,8 @@ class Backend(object):
 class DjangoBackend(Backend):
     """
     A basic django backend that tests if a flag is set
-    No caching is done with this backend as of yet.
+    The only caching done with this backend is a per-request
+    cache for each flag if DOLPHIN_STORE_FLAGS is True.
     """
     def _get_request(self, **kwargs):
         if kwargs.get('request', None) is not None:
