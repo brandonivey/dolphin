@@ -3,10 +3,13 @@ import random
 import time
 import pytz
 
+from django.utils.datastructures import SortedDict
+from django.db.models import F
+from django.conf import settings
 
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
-from dolphin.utils import calc_dist, get_ip, get_geoip_coords
+from dolphin.utils import get_ip, get_geoip_coords
 from .base import Backend
 
 
@@ -16,33 +19,12 @@ class DjangoBackend(Backend):
     The only caching done with this backend is a per-request
     cache for each flag if DOLPHIN_STORE_FLAGS is True.
     """
-    def _get_request(self, **kwargs):
-        if kwargs.get('request', None) is not None:
-            return kwargs['request']
-        return LocalStoreMiddleware.request()
-
-    def _in_circle(self, ff, lat, lon):
-        dist = calc_dist(float(ff.center.latitude), float(ff.center.longitude), lat, lon)
-        if dist <= ff.radius:
-            return True
-        return False
-
-    def _once_per_req(self, name, key, func):
-        d = LocalStoreMiddleware.local.setdefault(name, {})
-
-        if key in d:
-            return d[key]
-
-        val = func()
-        d[key] = val
-        return val
 
     def _flag_key(self, ff, request):
         """
         This creates a tuple key with various values to uniquely identify the request
         and flag
         """
-        from django.utils.datastructures import SortedDict
         d = SortedDict()
         d['name'] = ff.name
         d['ip_address'] = get_ip(request)
@@ -60,13 +42,10 @@ class DjangoBackend(Backend):
         Will only calculate random and max flags once per request.
         Will store flags for the request if DOLPHIN_STORE_FLAGS is True (default).
         """
-        from django.db.models import F
-        from django.conf import settings
 
         key = self._flag_key(ff, request)
         flags = LocalStoreMiddleware.local.setdefault('flags', {})
         store_flags = getattr(settings, 'DOLPHIN_STORE_FLAGS', True)
-        #import here to avoid circular import
 
         if store_flags and key in flags:
             return flags[key]
@@ -169,5 +148,4 @@ class DjangoBackend(Backend):
     def active_flags(self, *args, **kwargs):
         flags = FeatureFlag.objects.filter(enabled=True)
         req = self._get_request(**kwargs)
-        registered = req and req.user.is_authenticated()
         return [ff for ff in flags if self._flag_is_active(ff, req)]

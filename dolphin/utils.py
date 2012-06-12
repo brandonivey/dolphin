@@ -2,6 +2,19 @@ from math import sin, cos, degrees, acos, radians
 
 from django.conf import settings
 
+class DefaultDict(object):
+    """
+    A wrapper that allows simple name attributes for dicts, returning
+    default if the attribute doesn't exist
+    """
+    def __init__(self, d, default=None):
+        self._d = d
+        self._default=None
+
+    def __getattr__(self, key):
+        return self._d.get(key, self._default)
+
+
 def calc_dist(lat_A, long_A, lat_B, long_B):
     """Taken from the zip code database project"""
     distance = (sin(radians(lat_A)) *

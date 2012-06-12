@@ -10,10 +10,19 @@ from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 
 
+
 class BaseTest(TestCase):
     def _fake_request(self):
         req = type("Request", (object,), {})()
         return req
+
+    def setUp(self):
+        flipper.registered_checks = {}
+        LocalStoreMiddleware.local.clear()
+
+    def tearDown(self):
+        flipper.registered_checks = {}
+        LocalStoreMiddleware.local.clear()
 
 
 class ActiveTest(BaseTest):
