@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import calc_dist
 
@@ -20,8 +22,15 @@ class Backend(object):
             return True
         return False
 
-    def _once_per_req(self, name, key, func):
-        d = LocalStoreMiddleware.local.setdefault(name, {})
+    def _limit(self, name, key, func, request):
+        """
+        Limits the flag option to once per request, or if the option is enabled, to 
+        once per session (requires the session middleware
+        """
+        if hasattr(request, 'session') and getattr(settings, 'DOLPHIN_LIMIT_SESSION', True): #TODO - document
+            d = request.session.setdefault(name, {})
+        else:
+            d = LocalStoreMiddleware.local.setdefault(name, {})
 
         if key in d:
             return d[key]

@@ -4,6 +4,7 @@ import mock
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import Http404, HttpResponseRedirect
 from django.test import TestCase
+from django.test.client import Client
 
 from dolphin import flipper
 from dolphin.models import FeatureFlag
@@ -176,3 +177,32 @@ class CustomFlagTest(BaseTest):
 
         flipper.register_check('enabled', lambda x, **kwargs: False)
         self.assertFalse(flipper.is_active('enabled'))
+
+class SessionTest(BaseTest):
+    fixtures = ['ab_flags.json']
+
+    def test_max_session(self):
+        """Tests that max stores the flag properly in the request"""
+        c = Client()
+        for i in xrange(0, 5):
+            resp = c.get('/flag_is_active/max/')
+            self.assertEquals(resp.content, "True")
+            LocalStoreMiddleware.local.clear()
+
+        c = Client()
+        resp = c.get('/flag_is_active/max/')
+        self.assertEquals(resp.content, "True")
+
+    @mock.patch('random.randrange')
+    def test_random(self, randrange):
+        """Tests that the random flag is working correctly"""
+        c = Client()
+        randrange.return_value = 1
+        resp = c.get('/flag_is_active/ab_random/')
+        self.assertEquals(resp.content, "True")
+
+        LocalStoreMiddleware.local.clear()
+        randrange.return_value = 0
+        self.assertFalse(flipper.is_active('ab_random'))
+        resp = c.get('/flag_is_active/ab_random/')
+        self.assertEquals(resp.content, "True")

@@ -91,7 +91,7 @@ class DjangoBackend(Backend):
                 random.seed(time.time())
                 return bool(random.randrange(0, 2))
 
-            enabled = enabled and self._once_per_req('random', ff.name, rand_bool)
+            enabled = enabled and self._limit('random', ff.name, rand_bool, request)
 
         if ff.b_test_start:
             #start date
@@ -121,7 +121,7 @@ class DjangoBackend(Backend):
                 if enabled:
                     FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
                 return True
-            enabled = enabled and self._once_per_req('maxb', ff.name, maxb)
+            enabled = enabled and self._limit('maxb', ff.name, maxb, request)
 
         return store(enabled)
 

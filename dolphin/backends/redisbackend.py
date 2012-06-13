@@ -164,7 +164,7 @@ class RedisBackend(Backend):
                 random.seed(time.time())
                 return bool(random.randrange(0, 2))
 
-            enabled = enabled and self._once_per_req('random', dd.name, rand_bool)
+            enabled = enabled and self._limit('random', dd.name, rand_bool, request)
 
         if dd.b_test_start:
             #start date
@@ -195,7 +195,7 @@ class RedisBackend(Backend):
                 if enabled:
                     return r.hincrby(dd.name, 'current_b_tests', 1) <=  maxt
                 return True
-            enabled = enabled and self._once_per_req('maxb', dd.name, maxb)
+            enabled = enabled and self._limit('maxb', dd.name, maxb, request)
         return store(enabled)
 
     def active_flags(self, *args, **kwargs):

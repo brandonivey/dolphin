@@ -21,6 +21,7 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^$', ListView.as_view(queryset=FeatureFlag.objects.all(), template_name="home.html")),
+    url(r'^flag_is_active/(?P<slug>[\w-]+)/$', 'testapp.views.is_active'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/lookups/', include(ajax_select_urls)),
 )
