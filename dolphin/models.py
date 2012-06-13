@@ -4,7 +4,7 @@ from geoposition.fields import GeopositionField
 
 
 class FeatureFlag(models.Model):
-    name = models.SlugField(max_length=255, unique=True)
+    name = models.SlugField(max_length=255, unique=True, db_index=True)
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
 
     #users

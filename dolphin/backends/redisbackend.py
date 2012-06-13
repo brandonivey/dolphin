@@ -78,14 +78,18 @@ class RedisBackend(Backend):
     def _get_backend(self):
         return self.initiator(database=self.database)
 
-    def is_active(self, key, *args, **kwargs):
-        #returns true if the key exists and is active, False otherwise
+    def _get_redis_val(self, key):
         r = self._get_backend()
         val = r.hgetall(key)
         if val is None:
-            return False
+            return None
 
-        val = DefaultDict(RedisSchema().parse(val))
+        return DefaultDict(RedisSchema().parse(val))
+
+    def is_active(self, key, *args, **kwargs):
+        #returns true if the key exists and is active, False otherwise
+        val = self._get_redis_val(key)
+        if val is None: return False
 
         request = self._get_request(**kwargs)
         return self._flag_is_active(val, request)
@@ -200,7 +204,9 @@ class RedisBackend(Backend):
         #TODO - doc
         flags = r.smembers(setname)
         req = self._get_request(**kwargs)
-        return [dd for dd in flags if self._flag_is_active(dd, req)]
+        red_vals = [self._get_redis_val(key) for key in flags]
+        request = self._get_request(**kwargs)
+        return [flag for flag in red_vals if self._flag_is_active(flag, request)]
 
     def update(self, key, d):
         d = RedisSchema().serialize(d)
@@ -208,3 +214,5 @@ class RedisBackend(Backend):
         if 'name' not in d:
             d['name'] = key
         r.hmset(key, d)
+        setname = getattr(settings, 'DOLPHIN_SET_NAME', 'featureflags')
+        r.sadd(setname, key)

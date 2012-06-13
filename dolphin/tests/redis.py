@@ -14,6 +14,7 @@ from dolphin.middleware import LocalStoreMiddleware
 
 from .flipper import (ActiveTest, UserFlagsTest, GeoIPTest,
     ABTest, CustomFlagTest, BaseTest)
+from .templatetags import ActiveTagTest, FlagListTest
 
 
 class BaseRedisTest(BaseTest):
@@ -86,4 +87,11 @@ class RedisABTest(BaseRedisTest, ABTest):
         self.assertFalse(flipper.is_active('end_passed'))
 
 class RedisCustomFlagTest(BaseRedisTest, CustomFlagTest):
-    fixtures = ['base_flags.json']
+    pass
+
+class RedisActiveTagTest(BaseRedisTest, ActiveTagTest):
+    pass
+
+class RedisFlagListTest(BaseRedisTest, FlagListTest):
+    fixtures = ['users.json', 'user_flags.json', 'base_flags.json']
+
