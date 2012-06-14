@@ -4,13 +4,13 @@ import mock
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import Http404, HttpResponseRedirect
 from django.test import TestCase
-from django.conf import settings
 
 from dolphin import flipper
 from dolphin.backends import RedisBackend
 from dolphin.testutils import load_redis_fixtures
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
+from dolphin import settings
 
 from .flipper import (ActiveTest, UserFlagsTest, GeoIPTest,
     ABTest, CustomFlagTest, BaseTest)
@@ -20,7 +20,7 @@ from .templatetags import ActiveTagTest, FlagListTest
 class BaseRedisTest(BaseTest):
     fixtures = ['base_flags.json']
     def __init__(self, *args, **kwargs):
-        test_db = getattr(settings, "DOLPHIN_REDIS_TEST_DB", 'featureflag_test')
+        test_db = settings.DOLPHIN_REDIS_TEST_DB
         self.backend = RedisBackend(database=test_db)
         super(BaseRedisTest, self).__init__(*args, **kwargs)
 

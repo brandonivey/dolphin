@@ -5,18 +5,18 @@ import datetime
 import pytz
 import re
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.utils.datastructures import SortedDict
-from django.db.models import F
 from geoposition import Geoposition
 
 from .base import Backend
+from dolphin import settings
 from dolphin.utils import get_ip, get_geoip_coords, DefaultDict
 from dolphin.middleware import LocalStoreMiddleware
 
 def _initiate_redis(database=0):
-    host = getattr(settings, 'DOLPHIN_REDIS_HOST', 'localhost')
-    port = getattr(settings, 'DOLPHIN_REDIS_PORT', 6379)
+    host = settings.DOLPHIN_REDIS_HOST
+    port = settings.DOLPHIN_REDIS_PORT
     return redis.Redis(host=host, port=port, db=database)
 
 class RedisSchema(object):
@@ -69,8 +69,8 @@ class RedisBackend(Backend):
     def __init__(self, database=0):
         self.database = database
 
-        self.initiator = getattr(settings, 'DOLPHIN_REDIS_CONNECT', _initiate_redis)
-        self.store_flags = getattr(settings, 'DOLPHIN_STORE_FLAGS', True)
+        self.initiator = getattr(django_settings, 'DOLPHIN_REDIS_CONNECT', _initiate_redis)
+        self.store_flags = settings.DOLPHIN_STORE_FLAGS
 
         super(RedisBackend, self).__init__()
 
@@ -199,7 +199,7 @@ class RedisBackend(Backend):
 
     def active_flags(self, *args, **kwargs):
         r = self._get_backend()
-        setname = getattr(settings, 'DOLPHIN_SET_NAME', 'featureflags')
+        setname = settings.DOLPHIN_SET_NAME
         flags = r.smembers(setname)
         req = self._get_request(**kwargs)
         red_vals = [self._get_redis_val(key) for key in flags]
@@ -212,5 +212,5 @@ class RedisBackend(Backend):
         if 'name' not in d:
             d['name'] = key
         r.hmset(key, d)
-        setname = getattr(settings, 'DOLPHIN_SET_NAME', 'featureflags')
+        setname = settings.DOLPHIN_SET_NAME
         r.sadd(setname, key)

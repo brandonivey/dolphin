@@ -1,4 +1,9 @@
 from .manager import FlagManager
-from .backends import DjangoBackend
+from dolphin import settings
 
-flipper = FlagManager(DjangoBackend())
+if settings.DOLPHIN_USE_REDIS:
+    from .backends import RedisBackend as backend
+else:
+    from .backends import DjangoBackend as backend
+
+flipper = FlagManager(backend())

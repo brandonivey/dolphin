@@ -41,7 +41,7 @@ def get_geoip_coords(ip):
     """
     Returns (lat, lon) for the ip if it's valid or None
     """
-    if getattr(settings, 'DOLPHIN_USE_GIS', True) != True:
+    if not settings.DOLPHIN_USE_GIS:
         return None
 
     #assume that GIS is set up properly with a setting for the path

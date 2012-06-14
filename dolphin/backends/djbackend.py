@@ -5,8 +5,8 @@ import pytz
 
 from django.utils.datastructures import SortedDict
 from django.db.models import F
-from django.conf import settings
 
+from dolphin import settings
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import get_ip, get_geoip_coords
@@ -45,7 +45,7 @@ class DjangoBackend(Backend):
 
         key = self._flag_key(ff, request)
         flags = LocalStoreMiddleware.local.setdefault('flags', {})
-        store_flags = getattr(settings, 'DOLPHIN_STORE_FLAGS', True)
+        store_flags = settings.DOLPHIN_STORE_FLAGS
 
         if store_flags and key in flags:
             return flags[key]

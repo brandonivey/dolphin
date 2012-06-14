@@ -1,4 +1,4 @@
-from django.conf import settings
+from dolphin import settings
 
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import calc_dist
@@ -27,7 +27,7 @@ class Backend(object):
         Limits the flag option to once per request, or if the option is enabled, to 
         once per session (requires the session middleware
         """
-        if hasattr(request, 'session') and getattr(settings, 'DOLPHIN_LIMIT_TO_SESSION', True):
+        if hasattr(request, 'session') and settings.DOLPHIN_LIMIT_TO_SESSION:
             d = request.session.setdefault(name, {})
         else:
             d = LocalStoreMiddleware.local.setdefault(name, {})
