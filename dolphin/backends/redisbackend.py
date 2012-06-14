@@ -15,7 +15,6 @@ from dolphin.utils import get_ip, get_geoip_coords, DefaultDict
 from dolphin.middleware import LocalStoreMiddleware
 
 def _initiate_redis(database=0):
-    #TODO - document these settings
     host = getattr(settings, 'DOLPHIN_REDIS_HOST', 'localhost')
     port = getattr(settings, 'DOLPHIN_REDIS_PORT', 6379)
     return redis.Redis(host=host, port=port, db=database)
@@ -201,7 +200,6 @@ class RedisBackend(Backend):
     def active_flags(self, *args, **kwargs):
         r = self._get_backend()
         setname = getattr(settings, 'DOLPHIN_SET_NAME', 'featureflags')
-        #TODO - doc
         flags = r.smembers(setname)
         req = self._get_request(**kwargs)
         red_vals = [self._get_redis_val(key) for key in flags]

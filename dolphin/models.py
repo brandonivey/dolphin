@@ -14,7 +14,7 @@ class FeatureFlag(models.Model):
     users = models.ManyToManyField(User, blank=True) #TODO - do we want this to be many to many? possibly comma delimited charfield or something
 
     #geolocation
-    enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation") #TODO - admin verification of fields
+    enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation")
     center = GeopositionField(null=True)
     radius = models.FloatField(blank=True, null=True, help_text="Distance in miles") #TODO - allow km/meters/etc
 
