@@ -27,7 +27,7 @@ class Backend(object):
         Limits the flag option to once per request, or if the option is enabled, to 
         once per session (requires the session middleware
         """
-        if hasattr(request, 'session') and getattr(settings, 'DOLPHIN_LIMIT_SESSION', True): #TODO - document
+        if hasattr(request, 'session') and getattr(settings, 'DOLPHIN_LIMIT_TO_SESSION', True): #TODO - document
             d = request.session.setdefault(name, {})
         else:
             d = LocalStoreMiddleware.local.setdefault(name, {})
