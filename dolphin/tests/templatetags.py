@@ -80,8 +80,12 @@ class FlagListTest(BaseTest):
         t = Template(text)
         res = t.render(c)
         #test a registered user that is in a selected_users flag
-        self.assertEqual(res,
-                         "enabled,registered_only,selected_users")
+        res = res.split(',')
+        res.sort()
+
+        expected = ["enabled","registered_only","selected_users"]
+
+        self.assertEqual(res, expected)
 
         self.clear()
         req.user = User.objects.get(username='staff')
@@ -89,5 +93,8 @@ class FlagListTest(BaseTest):
         t = Template(text)
         res = t.render(c)
         #test a staff user that is not in the selected_users flag
-        self.assertEqual(res,
-                         "enabled,registered_only,staff_only")
+        res = res.split(',')
+        res.sort()
+
+        expected = ["enabled","registered_only","staff_only"]
+        self.assertEqual(res, expected)

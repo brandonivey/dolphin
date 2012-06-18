@@ -1,0 +1,41 @@
+Settings
+========
+
+=====================
+Functionality Options
+=====================
+
+DOLPHIN_USE_GIS
+  Boolean (Default True). Use geolocation based flags. True enables this, False disables the option in the admin.
+
+DOLPHIN_LIMIT_TO_SESSION
+  Boolean (Default True). Limits a/b switching (max/current views and random) to the session of the user.
+  This prevents the same user from seeing different flags on the site.
+
+DOLPHIN_STORE_FLAGS
+  Boolean (Default True). Store flag results for the entire request without recalculating them. Can speed up
+  flag calculation
+
+
+=============
+Redis options
+=============
+
+DOLPHIN_USE_REDIS
+  Boolean (Default False). Enable redis, or if disabled use the django backend.
+
+DOLPHIN_REDIS_HOST
+  String (Default 'localhost'). The hostname the redis server is running at.
+
+DOLPHIN_REDIS_PORT
+  Int (Default 6379). The port the redis server is running on.
+
+DOLPHIN_REDIS_CONNECT
+  Function (Default redis.Redis using the above host and port). This allows you to 
+  specify your own function for connecting to redis. Expects a returned connection.
+
+DOLPHIN_SET_NAME
+  String (Default featureflags). This setting changes the key name used for the set of flag names used in redis.
+
+DOLPHIN_REDIS_TEST_DB
+  String (Default featureflag_test). The name of the database to use for testing redis.

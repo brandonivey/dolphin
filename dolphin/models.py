@@ -2,9 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from geoposition.fields import GeopositionField
 
+from dolphin import settings
+
 
 class FeatureFlag(models.Model):
-    name = models.SlugField(max_length=255, unique=True)
+    name = models.SlugField(max_length=255, unique=True, db_index=True)
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
 
     #users
@@ -14,7 +16,7 @@ class FeatureFlag(models.Model):
     users = models.ManyToManyField(User, blank=True) #TODO - do we want this to be many to many? possibly comma delimited charfield or something
 
     #geolocation
-    enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation") #TODO - admin verification of fields
+    enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation")
     center = GeopositionField(null=True)
     radius = models.FloatField(blank=True, null=True, help_text="Distance in miles") #TODO - allow km/meters/etc
 
@@ -27,3 +29,8 @@ class FeatureFlag(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if settings.DOLPHIN_USE_REDIS:
+            from ipdb import set_trace; set_trace()
+        return super(FeatureFlag, self).save(*args, **kwargs)

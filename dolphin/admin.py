@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.conf import settings
+from dolphin import settings
 from django import forms
 from geoposition.fields import GeopositionField
 from ajax_select import make_ajax_field
@@ -40,7 +40,11 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
     )
 
-if getattr(settings, "DOLPHIN_USE_GIS", True):
+    def queryset(self, *args, **kwargs):
+        from ipdb import set_trace; set_trace()
+        return FeatureFlag.objects.all()
+
+if settings.DOLPHIN_USE_GIS:
     FeatureFlagAdmin.fieldsets += (
         ('Geolocation', {
             'fields': ('enable_geo', 'center', 'radius', )
