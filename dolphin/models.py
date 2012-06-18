@@ -2,6 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from geoposition.fields import GeopositionField
 
+from dolphin import settings
+from dolphin.backends import redisbackend
+
+class RedisModel(models.Model):
+    def save(self, *args, **kwargs):
+        from ipdb import set_trace; set_trace()
+        schema = redisbackend.RedisSchema(self.__dict__)
+        backend = redisbackend.RedisBackend()
 
 class FeatureFlag(models.Model):
     name = models.SlugField(max_length=255, unique=True, db_index=True)
@@ -27,3 +35,10 @@ class FeatureFlag(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if settings.DOLPHIN_USE_REDIS:
+            from ipdb import set_trace; set_trace()
+        return super(FeatureFlag, self).save(*args, **kwargs)
+
+

@@ -56,6 +56,8 @@ class RedisSchema(object):
                 d[key] = Geoposition(float(l[0]), float(l[1]))
             elif key == 'users':
                 d[key] = [int(i) for i in number_re.findall(d[key])]
+            else:
+                del d[key]
         return d
 
     def serialize(self, d):

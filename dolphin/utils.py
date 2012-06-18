@@ -1,6 +1,6 @@
 from math import sin, cos, degrees, acos, radians
 
-from django.conf import settings
+from dolphin import settings
 
 class DefaultDict(object):
     """
