@@ -16,6 +16,8 @@ DOLPHIN_STORE_FLAGS
   Boolean (Default True). Store flag results for the entire request without recalculating them. Can speed up
   flag calculation
 
+DOLPHIN_CACHE
+  Boolean (Default True). Cache the get() queries in the django cache backend with prefix of dolphin
 
 =============
 Redis options
