@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.test.client import Client
 
 from dolphin import flipper
+from dolphin import settings
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 
@@ -28,6 +29,12 @@ class BaseTest(TestCase):
 
 class ActiveTest(BaseTest):
     fixtures = ['base_flags.json']
+
+    def test_create_missing(self):
+        settings.DOLPHIN_AUTOCREATE_MISSING = True
+        self.assertFalse(flipper.is_active('missing'))
+        self.assertTrue(FeatureFlag.objects.filter(name='missing').exists())
+        settings.DOLPHIN_AUTOCREATE_MISSING = False
 
     def test_is_active(self):
         self.assertTrue(flipper.is_active("enabled"))
@@ -72,6 +79,7 @@ class UserFlagsTest(BaseTest):
 
     def test_staff(self):
         """Tests the staff only flags"""
+        settings.DOLPHIN_STORE_FLAGS=False
         req = self._fake_request()
         req.user = User.objects.get(username='registered')
         #registered user

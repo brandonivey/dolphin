@@ -34,7 +34,8 @@ class Schema(object):
                 d[key] = None
                 continue
             if key in self.bool_fields:
-                d[key] = True if d[key] == 'True' else False
+                if not isinstance(d[key], bool):
+                    d[key] = True if d[key] == 'True' else False
             elif key in self.unicode_fields:
                 d[key] = unicode(d[key])
             elif key in self.datetime_fields:
@@ -51,7 +52,8 @@ class Schema(object):
                     #using a DefaultDict since the GeoPosition key is an object
                     d[key] = Geoposition(float(l[0]), float(l[1]))
             elif key == 'users':
-                d[key] = [int(i) for i in number_re.findall(d[key])]
+                if not isinstance(d[key], list):
+                    d[key] = [int(i) for i in number_re.findall(d[key])]
             else:
                 del d[key]
         return d

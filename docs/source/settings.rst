@@ -19,6 +19,9 @@ DOLPHIN_STORE_FLAGS
 DOLPHIN_CACHE
   Boolean (Default True). Cache the get() queries in the django cache backend with prefix of dolphin
 
+DOLPHIN_AUTOCREATE_MISSING
+  Boolean (Default False). Create settings that are missing but used with is_active with enabled=False.
+
 =============
 Redis options
 =============

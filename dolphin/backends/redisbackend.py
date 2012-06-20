@@ -36,7 +36,7 @@ class RedisBackend(Backend):
     def _get_redis_val(self, key):
         r = self._get_backend()
         val = r.hgetall(key)
-        if val is None:
+        if val is None or val == {}:
             return None
 
         return DefaultDict(Schema().parse(val))
@@ -44,7 +44,10 @@ class RedisBackend(Backend):
     def is_active(self, key, *args, **kwargs):
         #returns true if the key exists and is active, False otherwise
         val = self._get_redis_val(key)
-        if val is None: return False
+        if val is None:
+            if settings.DOLPHIN_AUTOCREATE_MISSING:
+                self.update(key, {'name':key, 'enabled':False})
+            return False
 
         request = self._get_request(**kwargs)
         return self._flag_is_active(val, request)

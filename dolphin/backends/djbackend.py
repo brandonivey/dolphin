@@ -12,7 +12,7 @@ from dolphin import settings
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import get_ip, get_geoip_coords, DefaultDict
-from .utils import Schema
+from .utils import Schema, cache_key
 from .base import Backend
 
 
@@ -124,7 +124,7 @@ class DjangoBackend(Backend):
                 if enabled:
                     FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
                     if settings.DOLPHIN_CACHE:
-                        cache.delete(ff.name)
+                        cache.delete(cache_key(ff.name))
                 return True
             enabled = enabled and self._limit('maxb', ff.name, maxb, request)
 
@@ -140,17 +140,19 @@ class DjangoBackend(Backend):
         try:
             req = self._get_request(**kwargs)
             if settings.DOLPHIN_CACHE:
-                ff = cache.get(key)
+                ff = cache.get(cache_key(key))
                 if ff is not None:
                     return self._flag_is_active(DefaultDict(Schema().parse(ff)), req)
 
             ff = FeatureFlag.objects.get(name=key)
             if settings.DOLPHIN_CACHE:
-                cache.set(key, Schema().serialize(copy.copy(ff.__dict__)))
+                cache.set(cache_key(key), Schema().serialize(copy.copy(ff.__dict__)))
 
             return self._flag_is_active(ff, req)
 
         except FeatureFlag.DoesNotExist:
+            if settings.DOLPHIN_AUTOCREATE_MISSING:
+                FeatureFlag.objects.create(name=key, enabled=False)
             return False
 
     def delete(self, key, *args, **kwargs):

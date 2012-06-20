@@ -53,6 +53,16 @@ class BaseRedisTest(BaseTest):
         super(BaseRedisTest, self)._fixture_teardown()
 
 class RedisActiveTest(BaseRedisTest, ActiveTest):
+
+    def test_create_missing(self):
+        settings.DOLPHIN_AUTOCREATE_MISSING = True
+        self.assertFalse(flipper.is_active('missing'))
+        backend = flipper.backend._get_backend()
+        val = backend.hgetall('missing')
+        self.assertEquals(val['enabled'], 'False')
+        self.assertEquals(val['name'], 'missing')
+        settings.DOLPHIN_AUTOCREATE_MISSING = False
+
     def test_redis_fixture(self):
         self.assertTrue(flipper.is_active('enabled'))
 
