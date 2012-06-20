@@ -3,13 +3,13 @@ import random
 import time
 import datetime
 import pytz
-import re
 
 from django.conf import settings as django_settings
 from django.utils.datastructures import SortedDict
 from geoposition import Geoposition
 
 from .base import Backend
+from .utils import Schema
 from dolphin import settings
 from dolphin.utils import get_ip, get_geoip_coords, DefaultDict
 from dolphin.middleware import LocalStoreMiddleware
@@ -19,53 +19,6 @@ def _initiate_redis(database=0):
     port = settings.DOLPHIN_REDIS_PORT
     return redis.Redis(host=host, port=port, db=database)
 
-
-class RedisSchema(object):
-
-    @staticmethod
-    def _bool(x):
-        return True if x == 'True' else False
-
-    bool_fields = set(('registered_only', 'enabled', 'staff_only', 'random',
-                   'limit_to_users', 'enable_geo'))
-
-    unicode_fields = set(('name',))
-    datetime_fields = set(('b_test_start', 'b_test_end'))
-    int_fields = set(('current_b_tests', 'maximum_b_tests'))
-    float_fields = set(('radius',))
-    none_fields = unicode_fields.union(datetime_fields).union(int_fields).union(float_fields)
-
-    def parse(self, d):
-        number_re = re.compile(r'(-?\d+(?:\.\d+)?)')
-        for key in d.keys():
-            if key in self.none_fields and d[key] == 'None':
-                d[key] = None
-                continue
-            if key in self.bool_fields:
-                d[key] = True if d[key] == 'True' else False
-            elif key in self.unicode_fields:
-                d[key] = unicode(d[key])
-            elif key in self.datetime_fields:
-                d[key] = datetime.datetime.fromtimestamp(float(d[key]))
-            elif key in self.int_fields:
-                d[key] = int(d[key])
-            elif key in self.float_fields:
-                d[key] = float(number_re.findall(d[key])[0])
-            elif key == 'center':
-                l = number_re.findall(d[key])
-                #using a DefaultDict since the GeoPosition key is an object
-                d[key] = Geoposition(float(l[0]), float(l[1]))
-            elif key == 'users':
-                d[key] = [int(i) for i in number_re.findall(d[key])]
-            else:
-                del d[key]
-        return d
-
-    def serialize(self, d):
-        for field in self.datetime_fields:
-           if field in d and d[field] is not None:
-               d[field] = d[field].strftime('%s')
-        return d
 
 
 class RedisBackend(Backend):
@@ -86,7 +39,7 @@ class RedisBackend(Backend):
         if val is None:
             return None
 
-        return DefaultDict(RedisSchema().parse(val))
+        return DefaultDict(Schema().parse(val))
 
     def is_active(self, key, *args, **kwargs):
         #returns true if the key exists and is active, False otherwise
@@ -214,7 +167,7 @@ class RedisBackend(Backend):
         return [flag for flag in red_vals if self._flag_is_active(flag, request)]
 
     def update(self, key, d):
-        d = RedisSchema().serialize(d)
+        d = Schema().serialize(d)
         r = self._get_backend()
         if 'name' not in d:
             d['name'] = key

@@ -1,8 +1,11 @@
 from django.db import models
+from django.core.cache import cache
 from django.contrib.auth.models import User
 from geoposition.fields import GeopositionField
+from django.db.models.signals import post_save, post_delete
 
 from dolphin import settings
+from dolphin.backends.utils import cache_key
 
 
 class FeatureFlag(models.Model):
@@ -34,3 +37,10 @@ class FeatureFlag(models.Model):
         if settings.DOLPHIN_USE_REDIS:
             from ipdb import set_trace; set_trace()
         return super(FeatureFlag, self).save(*args, **kwargs)
+
+def signal_receiver(sender, instance, **kwargs):
+    if settings.DOLPHIN_CACHE:
+        cache.delete(cache_key(instance.name))
+
+post_save.connect(signal_receiver, sender=FeatureFlag)
+post_delete.connect(signal_receiver, sender=FeatureFlag)

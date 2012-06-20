@@ -2,14 +2,17 @@ import datetime
 import random
 import time
 import pytz
+import copy
 
 from django.utils.datastructures import SortedDict
 from django.db.models import F
+from django.core.cache import cache
 
 from dolphin import settings
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
-from dolphin.utils import get_ip, get_geoip_coords
+from dolphin.utils import get_ip, get_geoip_coords, DefaultDict
+from .utils import Schema
 from .base import Backend
 
 
@@ -120,6 +123,8 @@ class DjangoBackend(Backend):
 
                 if enabled:
                     FeatureFlag.objects.filter(id=ff.id).update(current_b_tests=F('current_b_tests')+1)
+                    if settings.DOLPHIN_CACHE:
+                        cache.delete(ff.name)
                 return True
             enabled = enabled and self._limit('maxb', ff.name, maxb, request)
 
@@ -133,8 +138,16 @@ class DjangoBackend(Backend):
             return overrides[key]
 
         try:
-            ff = FeatureFlag.objects.get(name=key)
             req = self._get_request(**kwargs)
+            if settings.DOLPHIN_CACHE:
+                ff = cache.get(key)
+                if ff is not None:
+                    return self._flag_is_active(DefaultDict(Schema().parse(ff)), req)
+
+            ff = FeatureFlag.objects.get(name=key)
+            if settings.DOLPHIN_CACHE:
+                cache.set(key, Schema().serialize(copy.copy(ff.__dict__)))
+
             return self._flag_is_active(ff, req)
 
         except FeatureFlag.DoesNotExist:
