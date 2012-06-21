@@ -1,6 +1,8 @@
 from django import template
-from django.template.base import TemplateSyntaxError
-from django.template.base import Node, NodeList
+try:
+    from django.template import TemplateSyntaxError, Node, NodeList
+except ImportError:
+    from django.template.base import TemplateSyntaxError, Node, NodeList
 
 from dolphin import flipper
 
@@ -45,8 +47,13 @@ def ifactive(parser, token):
     return IfActiveNode(val1, other_args, nodelist_true, nodelist_false)
 ifactive = register.tag(ifactive)
 
+class ActiveTagNode(template.Node):
+    def render(self, context):
+        req = context.get('request', None)
+        return ",".join(ff.name for ff in flipper.active_tags(request=req))
 
-@register.simple_tag(takes_context=True)
-def active_tags(context):
-    req = context.get('request', None)
-    return ",".join(ff.name for ff in flipper.active_tags(request=req))
+def active_tags(parser, token):
+    return ActiveTagNode()
+
+register.tag('active_tags', active_tags)
+

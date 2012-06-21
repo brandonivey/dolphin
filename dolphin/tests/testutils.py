@@ -1,4 +1,7 @@
-from django.utils.unittest import TestCase
+try:
+    from django.test import TestCase
+except ImportError:
+    from django.utils.unittest import TestCase
 
 from dolphin.testutils import set_active
 from dolphin import flipper
