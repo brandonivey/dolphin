@@ -33,10 +33,6 @@ class FeatureFlag(models.Model):
     def __unicode__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        if settings.DOLPHIN_USE_REDIS:
-            from ipdb import set_trace; set_trace()
-        return super(FeatureFlag, self).save(*args, **kwargs)
 
 def signal_receiver(sender, instance, **kwargs):
     if settings.DOLPHIN_CACHE:

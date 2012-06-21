@@ -40,9 +40,6 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
     )
 
-    def queryset(self, *args, **kwargs):
-        from ipdb import set_trace; set_trace()
-        return FeatureFlag.objects.all()
 
 if settings.DOLPHIN_USE_GIS:
     FeatureFlagAdmin.fieldsets += (
