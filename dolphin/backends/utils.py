@@ -44,7 +44,7 @@ class Schema(object):
             elif key in self.int_fields:
                 d[key] = int(d[key])
             elif key in self.float_fields:
-                if not isinstance(key, float):
+                if not isinstance(d[key], float):
                     d[key] = float(number_re.findall(d[key])[0])
             elif key == 'center':
                 if not isinstance(d[key], Geoposition):

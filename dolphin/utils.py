@@ -46,6 +46,6 @@ def get_geoip_coords(ip):
 
     #assume that GIS is set up properly with a setting for the path
     #if not, it'll raise an exception
-    from django.contrib.gis.geoip import GeoIP
+    from django.contrib.gis.utils.geoip import GeoIP
     gip = GeoIP()
     return gip.lat_lon(ip)

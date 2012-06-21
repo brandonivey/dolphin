@@ -109,8 +109,8 @@ class GeoIPTest(BaseTest):
     fixtures = ['regional_flags.json']
 
     def test_regional_flag(self):
-        from django.contrib.gis import geoip
-        if not geoip.HAS_GEOIP:
+        from django.contrib.gis.utils import geoip
+        if hasattr(geoip,'HAS_GEOIP') and geoip.HAS_GEOIP:
             print 'GIS not installed. Skipping GeoIPTest'
             return
 
