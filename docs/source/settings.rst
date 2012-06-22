@@ -35,6 +35,9 @@ DOLPHIN_REDIS_HOST
 DOLPHIN_REDIS_PORT
   Int (Default 6379). The port the redis server is running on.
 
+DOLPHIN_DB
+  String (Default 0). The database to use. Defaults to the redis default.
+
 DOLPHIN_REDIS_CONNECT
   Function (Default redis.Redis using the above host and port). This allows you to 
   specify your own function for connecting to redis. Expects a returned connection.
