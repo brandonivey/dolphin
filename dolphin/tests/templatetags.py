@@ -21,7 +21,7 @@ class ActiveTagTest(BaseTest):
     def test_ifactive_enabled(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive "enabled" %}
+        {% ifactive %}
         Test
         {% endifactive %}
         """

@@ -114,7 +114,6 @@ class DjangoBackend(Backend):
 
         if ff.maximum_b_tests:
             #max B tests
-            #TODO - is this worth becoming atomic and locking?
 
             def maxb():
                 maxt = ff.maximum_b_tests

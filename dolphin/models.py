@@ -16,7 +16,7 @@ class FeatureFlag(models.Model):
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
     staff_only = models.BooleanField(blank=True, default=False, help_text="Limit to staff users")
     limit_to_users = models.BooleanField(blank=True, default=False, help_text="Limit to specific users")
-    users = models.ManyToManyField(User, blank=True) #TODO - do we want this to be many to many? possibly comma delimited charfield or something
+    users = models.ManyToManyField(User, blank=True) 
 
     #geolocation
     enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation")
