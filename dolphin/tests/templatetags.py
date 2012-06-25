@@ -21,7 +21,7 @@ class ActiveTagTest(BaseTest):
     def test_ifactive_enabled(self):
         text = r"""
         {% load dolphin_tags %}
-        {% ifactive %}
+        {% ifactive "enabled" %}
         Test
         {% endifactive %}
         """
@@ -64,7 +64,7 @@ class FlagListTest(BaseTest):
         return req
 
     def test_active_flag_list(self):
-        text = r"""{% load dolphin_tags %}{% active_tags %}"""
+        text = r"""{% load dolphin_tags %}{% active_flags %}"""
         t = Template(text)
         c = Context()
 
@@ -73,7 +73,7 @@ class FlagListTest(BaseTest):
                          "enabled")
 
     def test_active_flag_list_user(self):
-        text = r"""{% load dolphin_tags %}{% active_tags %}"""
+        text = r"""{% load dolphin_tags %}{% active_flags %}"""
         req = self._fake_request()
         req.user = User.objects.get(username="registered")
         c = Context({'request':req})

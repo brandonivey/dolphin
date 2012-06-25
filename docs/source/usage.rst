@@ -1,6 +1,10 @@
 Usage
 =====
 
+======
+Python
+======
+
 There are multiple ways to use dolphin. The first is with a basic if statement::
 
     from dolphin import flipper
@@ -24,6 +28,9 @@ or just a 404 by default::
     def view3(request):
         return ...
 
+========
+Template
+========
 
 In a template::
 
@@ -37,4 +44,37 @@ In a template::
 
 There's also a template tag that will list active flags as a comma delimited list::
 
-    {% active_tags %}
+    {% active_flags %}
+
+
+==========
+Javascript
+==========
+
+For usage in javascript, there are a couple of convenience functions in dolphin.views
+that can be added to your urls.py. As an example::
+
+    url(r'^dolphin/js/$', 'dolphin.views.js'),
+    url(r'^dolphin/json/$', 'dolphin.views.json'),
+
+The js view provides a flipper object which has a function is_active that may
+be used like the python is_active function::
+
+    <script type="text/javascript" src="/dolphin/js/">
+    <script type="text/javascript">
+        if ( flipper.is_active("enabled") ) {
+            ...
+        }
+        else {
+            ...
+        }
+    </script>
+
+The flipper object also has the active flags in an array called flipper.active_flags.
+
+The json function returns a structure as follows::
+
+    {"active_flags": ["enabled", "ab_random", "max"]}
+
+All processing is done in python with the javascript views, so the view 
+should never be cached (and is already decorated with never_cache).

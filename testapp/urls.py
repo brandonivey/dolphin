@@ -4,7 +4,6 @@ from django.contrib import admin
 from ajax_select import urls as ajax_select_urls
 
 
-
 # Uncomment the next two lines to enable the admin:
 admin.autodiscover()
 
@@ -20,6 +19,8 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^$', 'testapp.views.home'),
     url(r'^flag_is_active/(?P<slug>[\w-]+)/$', 'testapp.views.is_active'),
+    url(r'^dolphin/js/$', 'dolphin.views.js'),
+    url(r'^dolphin/json/$', 'dolphin.views.json'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/lookups/', include(ajax_select_urls)),
 )

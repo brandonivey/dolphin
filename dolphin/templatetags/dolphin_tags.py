@@ -58,10 +58,10 @@ ifactive = register.tag(ifactive)
 class ActiveTagNode(template.Node):
     def render(self, context):
         req = context.get('request', None)
-        return ",".join(ff.name for ff in flipper.active_tags(request=req))
+        return ",".join(ff.name for ff in flipper.active_flags(request=req))
 
-def active_tags(parser, token):
+def active_flags(parser, token):
     return ActiveTagNode()
 
-register.tag('active_tags', active_tags)
+register.tag('active_flags', active_flags)
 
