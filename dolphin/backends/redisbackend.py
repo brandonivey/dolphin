@@ -162,10 +162,14 @@ class RedisBackend(Backend):
         flags = r.smembers(setname)
         return flags
 
-    def active_flags(self, *args, **kwargs):
+    def all_flags(self, *args, **kwargs):
         flags = self.get_names()
         req = self._get_request(**kwargs)
         red_vals = [self._get_redis_val(key) for key in flags]
+        return red_vals
+
+    def active_flags(self, *args, **kwargs):
+        red_vals = self.all_flags(*args, **kwargs)
         request = self._get_request(**kwargs)
         return [flag for flag in red_vals if self._flag_is_active(flag, request)]
 

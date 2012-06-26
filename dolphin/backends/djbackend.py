@@ -7,6 +7,7 @@ import copy
 from django.utils.datastructures import SortedDict
 from django.db.models import F
 from django.core.cache import cache
+from django.db.models.manager import Manager
 
 from dolphin import settings
 from dolphin.models import FeatureFlag
@@ -69,7 +70,10 @@ class DjangoBackend(Backend):
                 enabled = False
             else:
                 if ff.limit_to_users:
-                    enabled = enabled and bool(ff.users.filter(id=request.user.id).exists())
+                    if isinstance(ff.users, Manager):
+                        enabled = enabled and bool(ff.users.filter(id=request.user.id).exists())
+                    else:
+                        enabled = enabled and request.user.id in ff.users
                 if ff.staff_only:
                     enabled = enabled and request.user.is_staff
                 if ff.registered_only:
@@ -158,6 +162,9 @@ class DjangoBackend(Backend):
         FeatureFlag.objects.filter(name=key).delete()
         #just delete the store and make them recalculate
         del LocalStoreMiddleware.local['flags']
+
+    def all_flags(self, *args, **kwargs):
+        return FeatureFlag.objects.all()
 
     def active_flags(self, *args, **kwargs):
         flags = FeatureFlag.objects.filter(enabled=True)

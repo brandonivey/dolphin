@@ -12,3 +12,5 @@ DOLPHIN_REDIS_PORT = getattr(django_settings, 'DOLPHIN_REDIS_PORT', 6379)
 DOLPHIN_REDIS_DB = getattr(django_settings, 'DOLPHIN_REDIS_DB', 0)
 DOLPHIN_SET_NAME = getattr(django_settings, 'DOLPHIN_SET_NAME', 'featureflags')
 DOLPHIN_REDIS_TEST_DB = getattr(django_settings, "DOLPHIN_REDIS_TEST_DB", 'featureflag_test')
+
+DOLPHIN_TEST_FLAG = getattr(django_settings, "DOLPHIN_TEST_FLAG", "dolphin_test")

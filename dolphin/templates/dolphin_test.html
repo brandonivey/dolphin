@@ -1,0 +1,97 @@
+{%load dolphin_tags %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Dolphin Test Page</title>
+        <link rel="stylesheet" type="text/css" href="//current.bootstrapcdn.com/bootstrap-v204/css/bootstrap-combined.min.css"/>
+        <script type="text/javascript" src="//current.bootstrapcdn.com/bootstrap-v204/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+        <div class="row">
+            <div class="span12">
+                <h2>Dolphin test page</h2>
+            </div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="span4">
+                <h3>User information</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Key</th><th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k, v in user_info.iteritems %}
+                        <tr>
+                            <td>{{k}}</td>
+                            <td>{{v}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <br/>
+
+        <div class="row">
+            <div class="span4">
+                <h3>Flags on load</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Flag Name</th><th>Enabled at load</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for flag in flags %}
+                        <tr>
+                            <td>{{flag.name}}</td>
+                            <td>{% ifactive flag.name %}Enabled{% else %}Disabled {% endifactive %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="span4 offset1">
+                <h3>Ajax (JSON) Flags</h3>
+                <table id="jsflags" class="table table-striped">
+                </table>
+                <button class="btn" id="reload_table">Reload</button>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/javascript">
+        function reload_table() {
+            $.getJSON('{% url dolphin.views.json %}', function(data) {
+                var tab = $('#jsflags');
+                tab.empty();
+                tab.append('<thead><tr><th>Flag Name</th><th>Enabled</th><tr></thead>');
+                tab.append('<tbody>')
+                
+                {% for flag in flags %}
+                    if ($.inArray("{{flag.name}}", data.active_flags) >= 0) {
+                        tab.append('<tr><td>{{flag.name}}</td><td>Enabled</td></tr>');
+                    } else {
+                        tab.append('<tr><td>{{flag.name}}</td><td>Disabled</td></tr>');
+                    }
+                {% endfor %}
+                tab.append('</tbody>')
+            });
+        }
+        $(document).ready(function () {
+            reload_table();
+        });
+
+        $('#reload_table').click(reload_table);
+    </script>
+    </body>
+</html>
+
+
+

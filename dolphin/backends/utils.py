@@ -60,7 +60,11 @@ class Schema(object):
 
     def serialize(self, d):
         for field in self.datetime_fields:
-           if field in d and d[field] is not None:
+           if d.get(field, None) is not None:
                d[field] = d[field].strftime('%s')
+
+        if d.get('users', None) is None:
+            d['users'] = []
+
         return d
 

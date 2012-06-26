@@ -24,6 +24,9 @@ class FlagManager(object):
         """Deletes the FeatureFlag"""
         return self.backend.delete(key, *args, **kwargs)
 
+    def all_flags(self, *args, **kwargs):
+        return self.backend.all_flags(*args, **kwargs)
+
     def active_flags(self, *args, **kwargs):
         """Returns a list of active flags (not including overrides)"""
         return self.backend.active_flags(*args, **kwargs)

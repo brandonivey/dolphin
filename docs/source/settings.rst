@@ -22,6 +22,10 @@ DOLPHIN_CACHE
 DOLPHIN_AUTOCREATE_MISSING
   Boolean (Default False). Create settings that are missing but used with is_active with enabled=False.
 
+DOLPHIN_TEST_FLAG
+  String (Default "dolphin_test"). The name of the flag for the dolphin_test url to return a valid page 
+  rather than a 404.
+
 =============
 Redis options
 =============

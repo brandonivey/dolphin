@@ -17,7 +17,7 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    url(r'^$', 'testapp.views.home'),
+    url(r'^$', 'dolphin.views.dolphin_test'),
     url(r'^flag_is_active/(?P<slug>[\w-]+)/$', 'testapp.views.is_active'),
     url(r'^dolphin/js/$', 'dolphin.views.js'),
     url(r'^dolphin/json/$', 'dolphin.views.json'),
