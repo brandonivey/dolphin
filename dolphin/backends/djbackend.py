@@ -63,17 +63,18 @@ class DjangoBackend(Backend):
             return store(False)
 
         enabled = True
-        if ff.registered_only or ff.limit_to_users or ff.staff_only:
+        if ff.registered_only or ff.limit_to_group or ff.staff_only:
             #user based flag
             if not request: enabled = False
             elif not request.user.is_authenticated():
                 enabled = False
             else:
-                if ff.limit_to_users:
-                    if isinstance(ff.users, Manager):
-                        enabled = enabled and bool(ff.users.filter(id=request.user.id).exists())
+                if ff.limit_to_group:
+                    if isinstance(ff.group_id, int):
+                        group_id = ff.group_id
                     else:
-                        enabled = enabled and request.user.id in ff.users
+                        group_id = ff.group # for the cache objects and redis
+                    enabled = enabled and bool(request.user.groups.filter(id=group_id).exists())
                 if ff.staff_only:
                     enabled = enabled and request.user.is_staff
                 if ff.registered_only:

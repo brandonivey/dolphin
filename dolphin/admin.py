@@ -2,7 +2,6 @@ from django.contrib import admin
 from dolphin import settings
 from django import forms
 from geoposition.fields import GeopositionField
-from ajax_select import make_ajax_field
 
 from .models import FeatureFlag
 
@@ -17,23 +16,22 @@ disable_selected.short_description = "Disable selected flags"
 
 class FeatureFlagForm(forms.ModelForm):
     center = GeopositionField()
-    users = make_ajax_field(FeatureFlag, 'users', 'users', show_help_text = False, required=False)
 
     class Meta:
         model = FeatureFlag
 
 
 class FeatureFlagAdmin(admin.ModelAdmin):
-    #form = make_ajax_form(FeatureFlag, {'users':'user'})
     form = FeatureFlagForm
-    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_users', 'enable_geo')
+    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
     actions = [enable_selected, disable_selected]
+    raw_id_fields = ('group',)
     fieldsets = (
         (None, {
             'fields': ('name', 'enabled')
         }),
         ('User flags', {
-            'fields': ('registered_only', 'staff_only', 'limit_to_users', 'users')
+            'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group')
         }),
         ('A/B Tests', {
             'fields': ('random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')

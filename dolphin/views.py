@@ -29,7 +29,6 @@ def dolphin_test(request):
     if settings.DOLPHIN_USE_GIS:
         user_info['Geolocation'] = utils.get_geoip_coords(utils.get_ip(request))
 
-
     context = RequestContext(request,
                              {
                                  'user_info':user_info,

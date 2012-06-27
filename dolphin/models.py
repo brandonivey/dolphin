@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.cache import cache
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 from geoposition.fields import GeopositionField
 from django.db.models.signals import post_save, post_delete
 
@@ -15,8 +15,8 @@ class FeatureFlag(models.Model):
     #users
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
     staff_only = models.BooleanField(blank=True, default=False, help_text="Limit to staff users")
-    limit_to_users = models.BooleanField(blank=True, default=False, help_text="Limit to specific users")
-    users = models.ManyToManyField(User, blank=True) 
+    limit_to_group = models.BooleanField(blank=True, default=False, help_text="Limit to a specific group")
+    group = models.ForeignKey(Group, blank=True, null=True) 
 
     #geolocation
     enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation")

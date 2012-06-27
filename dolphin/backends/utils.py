@@ -6,6 +6,7 @@ except ImportError:
 
 import datetime
 from geoposition import Geoposition
+from django.contrib.auth.models import Group
 
 def cache_key(name):
     m = md5()
@@ -19,13 +20,13 @@ class Schema(object):
         return True if x == 'True' else False
 
     bool_fields = set(('registered_only', 'enabled', 'staff_only', 'random',
-                   'limit_to_users', 'enable_geo'))
+                   'limit_to_group', 'enable_geo'))
 
     unicode_fields = set(('name',))
     datetime_fields = set(('b_test_start', 'b_test_end'))
     int_fields = set(('current_b_tests', 'maximum_b_tests'))
     float_fields = set(('radius',))
-    none_fields = unicode_fields.union(datetime_fields).union(int_fields).union(float_fields)
+    none_fields = unicode_fields.union(datetime_fields).union(int_fields).union(float_fields).union(set(['group']))
 
     def parse(self, d):
         number_re = re.compile(r'(-?\d+(?:\.\d+)?)')
@@ -51,9 +52,9 @@ class Schema(object):
                     l = number_re.findall(d[key])
                     #using a DefaultDict since the GeoPosition key is an object
                     d[key] = Geoposition(float(l[0]), float(l[1]))
-            elif key == 'users':
-                if not isinstance(d[key], list):
-                    d[key] = [int(i) for i in number_re.findall(d[key])]
+            elif key == 'group':
+                if not isinstance(d[key], int):
+                    d[key] = int(number_re.findall(d[key])[0])
             else:
                 del d[key]
         return d
@@ -63,8 +64,12 @@ class Schema(object):
            if d.get(field, None) is not None:
                d[field] = d[field].strftime('%s')
 
-        if d.get('users', None) is None:
-            d['users'] = []
+        if d.get('group_id', None) is not None:
+            d['group'] = d['group_id']
+        elif d.get('group', None) is not None and isinstance(d['group'], int):
+            d['group'] = d['group']
+        else:
+            d['group'] = None
 
         return d
 

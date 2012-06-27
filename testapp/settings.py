@@ -133,12 +133,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
-AJAX_LOOKUP_CHANNELS = {
-    'users': {'model':'auth.user', 'search_field':'username'}
-}
-AJAX_SELECT_BOOTSTRAP = True
-AJAX_SELECT_INLINES = 'inline'
-
 try:
     import fixture_generator
     INSTALLED_APPS += ('fixture_generator',)

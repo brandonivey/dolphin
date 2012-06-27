@@ -79,11 +79,11 @@ class FlagListTest(BaseTest):
         c = Context({'request':req})
         t = Template(text)
         res = t.render(c)
-        #test a registered user that is in a selected_users flag
+        #test a registered user that is a part of the selected_group flag group
         res = res.split(',')
         res.sort()
 
-        expected = ["enabled","registered_only","selected_users"]
+        expected = ["enabled","registered_only","selected_group"]
 
         self.assertEqual(res, expected)
 
@@ -92,7 +92,7 @@ class FlagListTest(BaseTest):
         c = Context({'request':req})
         t = Template(text)
         res = t.render(c)
-        #test a staff user that is not in the selected_users flag
+        #test a staff user that is not in the group expected by selected_group flag
         res = res.split(',')
         res.sort()
 

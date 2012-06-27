@@ -90,14 +90,14 @@ class RedisBackend(Backend):
             return store(False)
 
         enabled = True
-        if dd.registered_only or dd.limit_to_users or dd.staff_only:
+        if dd.registered_only or dd.limit_to_group or dd.staff_only:
             #user based flag
             if not request: enabled = False
             elif not request.user.is_authenticated():
                 enabled = False
             else:
-                if dd.limit_to_users and hasattr(dd.users, '__iter__'):
-                    enabled = enabled and bool(request.user.id in dd.users)
+                if dd.limit_to_group:
+                    enabled = enabled and bool(request.user.groups.filter(id=dd.group).exists())
                 if dd.staff_only:
                     enabled = enabled and request.user.is_staff
                 if dd.registered_only:

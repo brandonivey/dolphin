@@ -96,7 +96,7 @@ class UserFlagsTest(BaseTest):
         req = self._fake_request()
         user = User.objects.get(username='registered')
         req.user = user
-        self.assertTrue(flipper.is_active('selected_users', request=req))
+        self.assertTrue(flipper.is_active('selected_group', request=req))
 
         req.user = AnonymousUser()
         self.assertFalse(flipper.is_active('users', request=req))
