@@ -1,3 +1,5 @@
+__version__ = '0.1'
+
 from .manager import FlagManager
 from dolphin import settings
 
