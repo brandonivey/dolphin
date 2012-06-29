@@ -15,7 +15,7 @@ def json(request, direct=False):
 
 def js(request):
     active_flags = json(request, direct=True)
-    resp = render_to_response('dolphin/dolphin_js.js',
+    resp = render_to_response('dolphin_js.js',
                               {'active_flags':active_flags})
 
     resp['Content-Type'] = 'application/javascript'
@@ -36,4 +36,4 @@ def dolphin_test(request):
                                  'flipper':flipper
                              })
 
-    return render_to_response('dolphin/dolphin_test.html', context_instance=context)
+    return render_to_response('dolphin_test.html', context_instance=context)
