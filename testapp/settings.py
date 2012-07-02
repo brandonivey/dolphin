@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'south',
     'ajax_select',
     'geoposition',
+    'testapp',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
