@@ -5,6 +5,7 @@ except ImportError:
     from md5 import md5
 
 import datetime
+import dateutil.parser
 from geoposition import Geoposition
 from django.contrib.auth.models import Group
 
@@ -41,7 +42,7 @@ class Schema(object):
                 d[key] = unicode(d[key])
             elif key in self.datetime_fields:
                 if not isinstance(d[key], datetime.datetime):
-                    d[key] = datetime.datetime.fromtimestamp(float(d[key]))
+                    d[key] = dateutil.parser.parse(d[key])
             elif key in self.int_fields:
                 d[key] = int(d[key])
             elif key in self.float_fields:
@@ -62,7 +63,7 @@ class Schema(object):
     def serialize(self, d):
         for field in self.datetime_fields:
            if d.get(field, None) is not None:
-               d[field] = d[field].strftime('%s')
+               d[field] = d[field].isoformat()
 
         if d.get('group_id', None) is not None:
             d['group'] = d['group_id']

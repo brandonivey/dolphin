@@ -18,7 +18,7 @@ setup(name='dolphin',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'pytz', 'mock'
+          'pytz', 'mock', 'python-dateutil'
       ],
       entry_points="",
       )

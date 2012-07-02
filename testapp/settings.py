@@ -167,3 +167,4 @@ LOGGING = {
 }
 
 GEOIP_PATH="/usr/share/GeoLiteCity.dat"
+DOLPHIN_USE_REDIS=False
