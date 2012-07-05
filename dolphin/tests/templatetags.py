@@ -7,7 +7,7 @@ from dolphin.middleware import LocalStoreMiddleware
 from dolphin.tests.flipper import BaseTest
 
 class ActiveTagTest(BaseTest):
-    fixtures = ['base_flags.json']
+    fixtures = ['dolphin_base_flags.json']
 
     def check_res(self, text, expected):
         t = Template(text)
@@ -54,7 +54,7 @@ class ActiveTagTest(BaseTest):
         self.check_res(text, expected_resp)
 
 class FlagListTest(BaseTest):
-    fixtures = ['users.json', 'user_flags.json', 'base_flags.json']
+    fixtures = ['dolphin_users.json', 'dolphin_user_flags.json', 'dolphin_base_flags.json']
 
     def clear(self):
         LocalStoreMiddleware.local.clear()

@@ -27,7 +27,7 @@ class BaseTest(TestCase):
 
 
 class ActiveTest(BaseTest):
-    fixtures = ['base_flags.json']
+    fixtures = ['dolphin_base_flags.json']
 
     def test_create_missing(self):
         settings.DOLPHIN_AUTOCREATE_MISSING = True
@@ -64,7 +64,7 @@ class ActiveTest(BaseTest):
 
 
 class UserFlagsTest(BaseTest):
-    fixtures = ['users.json', 'user_flags.json']
+    fixtures = ['dolphin_users.json', 'dolphin_user_flags.json']
 
     def test_registered(self):
         """Tests the registered user only flags"""
@@ -105,7 +105,7 @@ class UserFlagsTest(BaseTest):
 
 
 class GeoIPTest(BaseTest):
-    fixtures = ['regional_flags.json']
+    fixtures = ['dolphin_regional_flags.json']
 
     def test_regional_flag(self):
         try:
@@ -134,7 +134,7 @@ class GeoIPTest(BaseTest):
 
 
 class ABTest(BaseTest):
-    fixtures = ['ab_flags.json']
+    fixtures = ['dolphin_ab_flags.json']
 
     def test_start(self):
         """Tests that the start datetime for A/B tests is working"""
@@ -173,7 +173,7 @@ class ABTest(BaseTest):
         self.assertFalse(flipper.is_active('max'))
 
 class CustomFlagTest(BaseTest):
-    fixtures = ['base_flags.json']
+    fixtures = ['dolphin_base_flags.json']
 
     def test_enabled_custom_flag(self):
         #base test

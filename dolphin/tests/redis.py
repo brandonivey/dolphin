@@ -18,7 +18,7 @@ from .templatetags import ActiveTagTest, FlagListTest
 
 
 class BaseRedisTest(BaseTest):
-    fixtures = ['base_flags.json']
+    fixtures = ['dolphin_base_flags.json']
     def __init__(self, *args, **kwargs):
         test_db = settings.DOLPHIN_REDIS_TEST_DB
         self.backend = RedisBackend(database=test_db)
@@ -68,15 +68,15 @@ class RedisActiveTest(BaseRedisTest, ActiveTest):
 
 
 class RedisUserFlagsTest(BaseRedisTest, UserFlagsTest):
-    fixtures = ['users.json', 'user_flags.json']
+    fixtures = ['dolphin_users.json', 'dolphin_user_flags.json']
 
 
 class RedisGeoIPTest(BaseRedisTest, GeoIPTest):
-    fixtures = ['regional_flags.json']
+    fixtures = ['dolphin_regional_flags.json']
 
 
 class RedisABTest(BaseRedisTest, ABTest):
-    fixtures = ['ab_flags.json']
+    fixtures = ['dolphin_ab_flags.json']
 
     def test_start(self):
         """Tests that the start datetime for A/B tests is working"""
@@ -103,5 +103,5 @@ class RedisActiveTagTest(BaseRedisTest, ActiveTagTest):
     pass
 
 class RedisFlagListTest(BaseRedisTest, FlagListTest):
-    fixtures = ['users.json', 'user_flags.json', 'base_flags.json']
+    fixtures = ['dolphin_users.json', 'dolphin_user_flags.json', 'dolphin_base_flags.json']
 

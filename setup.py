@@ -17,8 +17,8 @@ setup(name='dolphin',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-#      install_requires=[
-#          'pytz', 'mock', 'python-dateutil'
-#      ],
+      install_requires=[
+          'pytz', 'mock', 'python-dateutil'
+      ],
       entry_points="",
       )

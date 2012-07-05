@@ -7,7 +7,7 @@ from dolphin.tests.flipper import BaseTest
 from dolphin import flipper
 
 class SessionTest(BaseTest):
-    fixtures = ['ab_flags.json']
+    fixtures = ['dolphin_ab_flags.json']
 
     def test_max_session(self):
         """Tests that max stores the flag properly in the request"""

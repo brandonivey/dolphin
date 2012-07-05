@@ -11,17 +11,17 @@ def test_base_flags():
 
 @fixture_generator(User)
 def test_users():
-    u = User.objects.create(username="registered")
+    u = User.objects.create(pk=1500, username="registered")
     u.set_password('registered')
     u.save()
-    User.objects.create(username="staff", is_staff=True)
-    u = User(username='admin', is_staff=True, is_superuser=True)
+    User.objects.create(pk=1501, username="staff", is_staff=True)
+    u = User(pk=1502, username='admin', is_staff=True, is_superuser=True)
     u.set_password('admin')
     u.save()
 
 @fixture_generator(Group, requires=["dolphin.test_users"])
 def test_group():
-    group = Group.objects.create(name="selected_group")
+    group = Group.objects.create(pk=1500, name="selected_group")
     group.user_set.add(User.objects.get(username="registered"))
 
 @fixture_generator(FeatureFlag, requires=["dolphin.test_base_flags", "dolphin.test_users", "dolphin.test_group"])

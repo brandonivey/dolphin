@@ -128,7 +128,6 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'south',
-    'ajax_select',
     'geoposition',
     'testapp',
     # Uncomment the next line to enable admin documentation:
@@ -169,3 +168,4 @@ LOGGING = {
 
 GEOIP_PATH="/usr/share/GeoLiteCity.dat"
 DOLPHIN_USE_REDIS=False
+MEDLEY_MEDIA_URL="/"
