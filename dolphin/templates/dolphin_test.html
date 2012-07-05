@@ -73,7 +73,7 @@
                 tab.empty();
                 tab.append('<thead><tr><th>Flag Name</th><th>Enabled</th><tr></thead>');
                 tab.append('<tbody>')
-                
+
                 {% for flag in flags %}
                     if ($.inArray("{{flag.name}}", data.active_flags) >= 0) {
                         tab.append('<tr><td>{{flag.name}}</td><td>Enabled</td></tr>');

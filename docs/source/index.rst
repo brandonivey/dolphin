@@ -6,8 +6,8 @@
 Welcome to Dolphin's documentation!
 ===================================
 
-Dolphin is a feature flagging library for django that also doubles as 
-an A/B library and geoip based switch. It was heavily inspired 
+Dolphin is a feature flagging library for django that also doubles as
+an A/B library and geoip based switch. It was heavily inspired
 by Gargoyle (https://github.com/disqus/gargoyle).
 
 

@@ -16,7 +16,7 @@ class FeatureFlag(models.Model):
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
     staff_only = models.BooleanField(blank=True, default=False, help_text="Limit to staff users")
     limit_to_group = models.BooleanField(blank=True, default=False, help_text="Limit to a specific group")
-    group = models.ForeignKey(Group, blank=True, null=True) 
+    group = models.ForeignKey(Group, blank=True, null=True)
 
     #geolocation
     enable_geo = models.BooleanField(blank=True, default=False, help_text="Enable geolocation")

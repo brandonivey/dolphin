@@ -23,7 +23,7 @@ DOLPHIN_AUTOCREATE_MISSING
   Boolean (Default False). Create settings that are missing but used with is_active with enabled=False.
 
 DOLPHIN_TEST_FLAG
-  String (Default "dolphin_test"). The name of the flag for the dolphin_test url to return a valid page 
+  String (Default "dolphin_test"). The name of the flag for the dolphin_test url to return a valid page
   rather than a 404.
 
 =============
@@ -43,7 +43,7 @@ DOLPHIN_DB
   String (Default 0). The database to use. Defaults to the redis default.
 
 DOLPHIN_REDIS_CONNECT
-  Function (Default redis.Redis using the above host and port). This allows you to 
+  Function (Default redis.Redis using the above host and port). This allows you to
   specify your own function for connecting to redis. Expects a returned connection.
 
 DOLPHIN_SET_NAME
