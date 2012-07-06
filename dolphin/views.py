@@ -2,9 +2,9 @@ from django.utils import simplejson
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.views.decorators.cache import never_cache
 
 from dolphin import flipper, settings, utils
-from dolphin.models import FeatureFlag
 
 def _active_flags(request):
     """Returns the active flags for the request."""
@@ -24,6 +24,7 @@ def js(request):
     resp['Content-Type'] = 'application/javascript'
     return resp
 
+@never_cache
 @flipper.switch_is_active(settings.DOLPHIN_TEST_FLAG)
 def dolphin_test(request):
     """A test page to verify the flags dolphin considers active"""
