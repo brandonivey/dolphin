@@ -1,3 +1,5 @@
+import copy
+
 from django.db import models
 from django.core.cache import cache
 from django.contrib.auth.models import Group
@@ -5,7 +7,7 @@ from geoposition.fields import GeopositionField
 from django.db.models.signals import post_save, post_delete
 
 from dolphin import settings
-from dolphin.backends.utils import cache_key
+from dolphin.backends.utils import cache_key, Schema
 
 
 class FeatureFlag(models.Model):
@@ -34,9 +36,13 @@ class FeatureFlag(models.Model):
         return self.name
 
 
-def signal_receiver(sender, instance, **kwargs):
+def delete_cache_receiver(sender, instance, **kwargs):
     if settings.DOLPHIN_CACHE:
         cache.delete(cache_key(instance.name))
 
-post_save.connect(signal_receiver, sender=FeatureFlag)
-post_delete.connect(signal_receiver, sender=FeatureFlag)
+def update_cache_receiver(sender, instance, **kwargs):
+    if settings.DOLPHIN_CACHE and instance.id:
+        cache.set(cache_key(instance.name), Schema().serialize(copy.copy(instance.__dict__)))
+
+post_save.connect(update_cache_receiver, sender=FeatureFlag)
+post_delete.connect(delete_cache_receiver, sender=FeatureFlag)

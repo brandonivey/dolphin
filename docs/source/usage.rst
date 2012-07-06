@@ -35,7 +35,7 @@ Template
 In a template::
 
     {% load dolphin_tags %}
-    {% ifactive "keyname" %}
+    {% ifactive "flag_name" %}
     Active
     {% else %}
     Not active
@@ -62,7 +62,7 @@ be used like the python is_active function::
 
     <script type="text/javascript" src="/dolphin/js/">
     <script type="text/javascript">
-        if ( flipper.is_active("enabled") ) {
+        if ( flipper.is_active("flag_name") ) {
             ...
         }
         else {

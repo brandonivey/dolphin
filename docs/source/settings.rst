@@ -42,10 +42,10 @@ DOLPHIN_REDIS_PORT
 DOLPHIN_DB
   String (Default 0). The database to use. Defaults to the redis default.
 
-DOLPHIN_REDIS_CONNECT
-  Function (Default redis.Redis using the above host and port). This allows you to
-  specify your own function for connecting to redis. Expects a returned connection.
-
+DOLPHIN_REDIS_BACKEND
+  redis.Redis class. This allows you to customize the redis class being instantiated.
+  The class must take a database argument. The default backend uses a connection pool to connect.
+  
 DOLPHIN_SET_NAME
   String (Default featureflags). This setting changes the key name used for the set of flag names used in redis.
 

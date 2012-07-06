@@ -6,15 +6,15 @@ from django.template import RequestContext
 from dolphin import flipper, settings, utils
 from dolphin.models import FeatureFlag
 
-def json(request, direct=False):
+def _active_flags(request):
     active_flags = flipper.active_flags(request=request)
-    j = simplejson.dumps({'active_flags': [f.name for f in active_flags]})
-    if direct:
-        return j
-    return HttpResponse(j, content_type='application/json')
+    return simplejson.dumps({'active_flags': [f.name for f in active_flags]})
+
+def json(request, direct=False):
+    return HttpResponse(_active_flags(request), content_type='application/json')
 
 def js(request):
-    active_flags = json(request, direct=True)
+    active_flags = _active_flags(request)
     resp = render_to_response('dolphin_js.js',
                               {'active_flags':active_flags})
 

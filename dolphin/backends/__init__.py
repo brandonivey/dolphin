@@ -1,7 +1,5 @@
-from .djbackend import DjangoBackend
-try:
-    import redis
+from dolphin import settings
+if settings.DOLPHIN_USE_REDIS:
     from .redisbackend import RedisBackend
-except ImportError:
-    #can't import redis
-    pass
+else:
+    from .djbackend import DjangoBackend

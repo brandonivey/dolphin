@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 
 
+
 # Uncomment the next two lines to enable the admin:
 admin.autodiscover()
 
@@ -15,9 +16,7 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    url(r'^$', 'dolphin.views.dolphin_test'),
     url(r'^flag_is_active/(?P<slug>[\w-]+)/$', 'testapp.views.is_active'),
-    url(r'^dolphin/js/$', 'dolphin.views.js'),
-    url(r'^dolphin/json/$', 'dolphin.views.json'),
+    url(r'^dolphin/', include('dolphin.urls')),
     url(r'^admin/', include(admin.site.urls)),
 )
