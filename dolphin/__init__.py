@@ -1,14 +1,10 @@
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 from .manager import FlagManager
 from dolphin import settings
+from dolphin.utils import import_class
 
-if settings.DOLPHIN_USE_REDIS:
-    from .backends import RedisBackend as Backend
-    database = settings.DOLPHIN_REDIS_DB
-    backend = Backend(database=database)
-else:
-    from .backends import DjangoBackend as Backend
-    backend = Backend()
+backend_settings = settings.DOLPHIN_BACKEND
+backend = import_class(backend_settings['BACKEND'])(**backend_settings)
 
 flipper = FlagManager(backend)

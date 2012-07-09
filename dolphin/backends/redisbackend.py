@@ -2,31 +2,35 @@ import redis
 
 from django.conf import settings as django_settings
 
-from .base import Backend
+from .base import Backend as BaseBackend
 from .utils import Schema
 from dolphin import settings
-from dolphin.utils import DefaultDict
+from dolphin.utils import DefaultDict, import_class
 
 
-class DefaultBackend(redis.Redis):
-    def __init__(self, database=0):
-        host = settings.DOLPHIN_REDIS_HOST
-        port = settings.DOLPHIN_REDIS_PORT
+class DefaultRedisEngine(redis.Redis):
+    def __init__(self, **kwargs):
+        self.backend_settings = kwargs
+        host = kwargs.get('HOST', 'localhost')
+        port = kwargs.get('PORT', 6379)
+        database = kwargs.get('DATABASE', 0)
 
-        if not hasattr(DefaultBackend, '_connection_pools'):
-            DefaultBackend._connection_pools = {}
+        if not hasattr(DefaultRedisEngine, '_connection_pools'):
+            DefaultRedisEngine._connection_pools = {}
 
         if database not in self._connection_pools:
             self._connection_pools[database] = redis.ConnectionPool(host=host, port=port, db=database)
 
-        super(DefaultBackend, self).__init__(connection_pool=self._connection_pools[database])
+        super(DefaultRedisEngine, self).__init__(connection_pool=self._connection_pools[database])
 
 
-class RedisBackend(Backend):
-    def __init__(self, database=0):
-        self.database = database
+class RedisBackend(BaseBackend):
+    def __init__(self, **kwargs):
+        self.backend_settings = kwargs
+        self.database = kwargs.get('DATABASE', 0)
 
-        self.redisbackend = getattr(django_settings, 'DOLPHIN_REDIS_BACKEND', DefaultBackend)
+        backend_str = kwargs.get('REDISENGINE', 'dolphin.backends.redisbackend.DefaultRedisEngine')
+        self.redisbackend = import_class(backend_str)
 
         super(RedisBackend, self).__init__()
 
@@ -61,7 +65,7 @@ class RedisBackend(Backend):
 
     def get_names(self):
         r = self._get_backend()
-        setname = settings.DOLPHIN_SET_NAME
+        setname = self.backend_settings.get('SETNAME', 'feature_flags')
         flags = r.smembers(setname)
         return flags
 
@@ -71,7 +75,7 @@ class RedisBackend(Backend):
         if 'name' not in d:
             d['name'] = key
         r.hmset(key, d)
-        setname = settings.DOLPHIN_SET_NAME
+        setname = self.backend_settings.get('SETNAME', 'feature_flags')
         r.sadd(setname, key)
 
     def all_flags(self, *args, **kwargs):

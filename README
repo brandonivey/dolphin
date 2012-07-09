@@ -177,33 +177,32 @@ DOLPHIN_TEST_FLAG
    dolphin_test url to return a valid page rather than a 404.
 
 
-Redis options
-=============
+Backend Options
+===============
 
-DOLPHIN_USE_REDIS
-   Boolean (Default False). Enable redis, or if disabled use the
-   django backend.
+DOLPHIN_BACKEND
+   A dictionary that sets the backend options. The default is to use
+   the DjangoBackend.
 
-DOLPHIN_REDIS_HOST
-   String (Default 'localhost'). The hostname the redis server is
-   running at.
+Default:
 
-DOLPHIN_REDIS_PORT
-   Int (Default 6379). The port the redis server is running on.
+   {
+       'BACKEND': 'dolphin.backends.djbackend.DjangoBackend'
+       #The backend to use. should inherit from dolphin.backends.base.Backend
+       #Builtin options are dolphin.backends.djbackend.DjangoBackend and
+       #dolphin.backends.redisbackend.RedisBackend
+   }
 
-DOLPHIN_DB
-   String (Default 0). The database to use. Defaults to the redis
-   default.
+Redis Backend Defaults (must specify the BACKEND as RedisBackend):
 
-DOLPHIN_REDIS_BACKEND
-   redis.Redis class. This allows you to customize the redis class
-   being instantiated. The class must take a database argument. The
-   default backend uses a connection pool to connect.
-
-DOLPHIN_SET_NAME
-   String (Default featureflags). This setting changes the key name
-   used for the set of flag names used in redis.
-
-DOLPHIN_REDIS_TEST_DB
-   String (Default featureflag_test). The name of the database to use
-   for testing redis.
+   {
+       'BACKEND': 'dolphin.backends.redisbackend.RedisBackend', #the backend
+       'DATABASE': 0, #the redis database to use
+       'HOST' :'localhost', #the hostname to connect to
+       'PORT': 6397, #the port to connect to
+       'REDISENGINE': 'dolphin.backends.redisbackend.DefaultRedisEngine',
+                      #the redis engine to use, subclass of redis.Redis.
+                      #The default has a connection pool to connec to
+                      #HOST and PORT.
+       'TESTDB': 'featureflag_test'
+   }

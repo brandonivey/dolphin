@@ -38,6 +38,7 @@ class LocalStoreMiddleware(object):
         self.local.clear()
 
     def process_request(self, request):
+        self.local.clear()
         self.local['request'] = request
 
     def process_response(self, request, response):

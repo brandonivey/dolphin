@@ -11,6 +11,9 @@ from dolphin.utils import get_ip, get_geoip_coords, calc_dist
 
 class Backend(object):
     """A base backend"""
+    def __init__(self, **kwargs):
+        self.backend_settings = kwargs
+
     def _check_maxb(self, flag, request):
         raise NotImplementedError("Must be overriden by backend")
 
