@@ -1,6 +1,7 @@
 from math import sin, cos, degrees, acos, radians
 
 from dolphin import settings
+from django.utils.importlib import import_module
 
 class DefaultDict(object):
     """
@@ -49,3 +50,8 @@ def get_geoip_coords(ip):
     from django.contrib.gis.utils.geoip import GeoIP
     gip = GeoIP()
     return gip.lat_lon(ip)
+
+def import_class(name):
+    mod, cl = name.rsplit('.', 1)
+    imported_module = import_module(mod)
+    return getattr(imported_module, cl)

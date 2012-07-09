@@ -8,6 +8,7 @@ import datetime
 import dateutil.parser
 from geoposition import Geoposition
 from django.contrib.auth.models import Group
+from django.utils.importlib import import_module
 
 def cache_key(name):
     m = md5()
@@ -73,4 +74,3 @@ class Schema(object):
             d['group'] = None
 
         return d
-

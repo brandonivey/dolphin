@@ -167,5 +167,9 @@ LOGGING = {
 }
 
 GEOIP_PATH="/usr/share/GeoLiteCity.dat"
-DOLPHIN_USE_REDIS=False
 MEDLEY_MEDIA_URL="/"
+
+DOLPHIN_BACKEND = {
+    #'BACKEND': 'dolphin.backends.redisbackend.RedisBackend'
+    'BACKEND': 'dolphin.backends.djbackend.DjangoBackend'
+}

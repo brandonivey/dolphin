@@ -8,10 +8,10 @@ from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import DefaultDict
 from .utils import Schema, cache_key
-from .base import Backend
+from .base import Backend as BaseBackend
 
 
-class DjangoBackend(Backend):
+class DjangoBackend(BaseBackend):
     """
     A basic django backend that tests if a flag is set
     The only caching done with this backend is a per-request

@@ -6,7 +6,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.test import TestCase
 
 from dolphin import flipper
-from dolphin.backends import RedisBackend
+from dolphin.backends.redisbackend import RedisBackend
 from dolphin.testutils import load_redis_fixtures
 from dolphin.models import FeatureFlag
 from dolphin.middleware import LocalStoreMiddleware
@@ -20,8 +20,8 @@ from .templatetags import ActiveTagTest, FlagListTest
 class BaseRedisTest(BaseTest):
     fixtures = ['dolphin_base_flags.json']
     def __init__(self, *args, **kwargs):
-        test_db = settings.DOLPHIN_REDIS_TEST_DB
-        self.backend = RedisBackend(database=test_db)
+        test_db = settings.DOLPHIN_BACKEND.get('TESTDB', 'featureflag_test')
+        self.backend = RedisBackend(DATABASE=test_db)
         super(BaseRedisTest, self).__init__(*args, **kwargs)
 
     def setUp(self):
