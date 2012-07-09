@@ -47,5 +47,4 @@ if settings.DOLPHIN_USE_GIS:
     )
 
 
-if not settings.DOLPHIN_USE_REDIS:
-    admin.site.register(FeatureFlag, FeatureFlagAdmin)
+admin.site.register(FeatureFlag, FeatureFlagAdmin)
