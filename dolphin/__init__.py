@@ -1,4 +1,4 @@
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 from .manager import FlagManager
 from dolphin import settings
