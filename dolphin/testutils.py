@@ -20,6 +20,7 @@ def set_active(key, val):
 
 
 def load_redis_fixtures(fixture_labels, backend):
+    # taken a modified from django.core.management.commands.loaddata
     # Keep a count of the installed objects and fixtures
     # changes marked by # + or # - and endchanges for +
 
