@@ -7,7 +7,7 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
+
         # Adding model 'FeatureFlag'
         db.create_table('dolphin_featureflag', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -30,7 +30,7 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        
+
         # Deleting model 'FeatureFlag'
         db.delete_table('dolphin_featureflag')
 

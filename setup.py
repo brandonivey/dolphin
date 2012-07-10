@@ -8,7 +8,15 @@ setup(name='dolphin',
       version=metadata['version'],
       description="A feature flagging library for Django",
       long_description="""A feature flagging and A/B testing library for Django""",
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[
+          "Development Status :: 3 - Alpha",
+          "Framework :: Django",
+          "Intended Audience :: Developers",
+          "Natural Language :: English",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python :: 2 :: Only",
+          "Topic :: Software Development :: Libraries :: Python Modules"
+      ], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='feature-flipping django',
       author='Jeremy Self',
       author_email='jeremy.self@coxinc.com',
@@ -18,7 +26,6 @@ setup(name='dolphin',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'pytz', 'mock', 'python-dateutil'
+          'pytz', 'python-dateutil'
       ],
-      entry_points="",
       )

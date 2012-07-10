@@ -2,7 +2,9 @@ Setup
 =====
 
 1. Install geoposition if necessary (pip install django-geoposition)
-2. Add "dolphin.middleware.LocalStoreMiddleware" to your MIDDLEWARE_CLASSES.
+2. Add "dolphin.middleware.LocalStoreMiddleware" to your MIDDLEWARE_CLASSES. If you are
+   planning on using Dolphin in middleware, it's suggested you put it before the middleware
+   you use it in.
    This allows per-request random testing and per-request caching.
 3. Add "dolphin" and "geoposition" to INSTALLED_APPS
 4. Ensure that REMOTE_ADDR is pointing to the correct IP address. If not,

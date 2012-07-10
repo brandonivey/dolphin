@@ -76,6 +76,6 @@ The json function returns a structure as follows::
 
     {"active_flags": ["enabled", "ab_random", "max"]}
 
-All processing is done in python with the javascript views. If any frontend caching would 
-cache this view, you may want to add never cache if you're utilizing geolocation, random, 
+All processing is done in python with the javascript views. If any frontend caching would
+cache this view, you may want to add never cache if you're utilizing geolocation, random,
 max, or date based flags.
