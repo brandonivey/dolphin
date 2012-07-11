@@ -1,8 +1,8 @@
 Custom Tests
 ============
 
-Dolphin can also support custom tests. Custom tests are conditions placed on flags that 
-are checked in addition to the existing conditions, i.e. checking if a username matches a 
+Dolphin can also support custom tests. Custom tests are conditions placed on flags that
+are checked in addition to the existing conditions, i.e. checking if a username matches a
 string. They are simply functions by the form of::
 
     def test_func(key, **kwargs):
