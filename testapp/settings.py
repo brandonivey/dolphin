@@ -170,6 +170,6 @@ GEOIP_PATH="/usr/share/GeoLiteCity.dat"
 MEDLEY_MEDIA_URL="/"
 
 DOLPHIN_BACKEND = {
-    'BACKEND': 'dolphin.backends.redisbackend.RedisBackend'
-    #'BACKEND': 'dolphin.backends.djbackend.DjangoBackend'
+    #'BACKEND': 'dolphin.backends.redisbackend.RedisBackend'
+    'BACKEND': 'dolphin.backends.djbackend.DjangoBackend'
 }

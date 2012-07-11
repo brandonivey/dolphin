@@ -78,7 +78,7 @@ class Backend(object):
             group_id = flag.group_id
         else:
             group_id = flag.group # for the cache objects and redis
-        return bool(request.user.groups.filter(id=group_id).exists())
+        return request.user.groups.filter(id=group_id).exists()
 
     def _flag_key(self, ff, request):
         """
@@ -133,7 +133,8 @@ class Backend(object):
                 if flag.registered_only:
                     enabled = enabled and True
 
-        if enabled == False: return store(enabled)
+        if enabled == False:
+            return store(enabled)
 
         if flag.enable_geo:
             #distance based
@@ -143,7 +144,8 @@ class Backend(object):
             else:
                 enabled = enabled and self._in_circle(flag, x[0], x[1])
 
-        if enabled == False: return store(enabled)
+        if enabled == False:
+            return store(enabled)
 
         #A/B flags
         if flag.random:

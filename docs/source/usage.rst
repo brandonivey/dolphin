@@ -36,9 +36,9 @@ In a template::
 
     {% load dolphin_tags %}
     {% ifactive "flag_name" %}
-    Active
+        Active
     {% else %}
-    Not active
+        Not active
     {% endifactive %}
 
 
