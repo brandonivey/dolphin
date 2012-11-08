@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import admin
 from dolphin import settings
 from django import forms
@@ -23,12 +25,12 @@ class FeatureFlagForm(forms.ModelForm):
 
 class FeatureFlagAdmin(admin.ModelAdmin):
     form = FeatureFlagForm
-    list_display = ('name', 'enabled', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
+    list_display = ('name', 'enabled', '_expires', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
     actions = [enable_selected, disable_selected]
     raw_id_fields = ('group',)
     fieldsets = (
         (None, {
-            'fields': ('name', 'enabled')
+            'fields': ('name', 'enabled', 'expires')
         }),
         ('User flags', {
             'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group')
@@ -38,6 +40,12 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
     )
 
+    def _expires(self, obj):
+        if obj.expires < datetime.now():
+            return '<span style="color:red">%s</span>' % obj.expires
+        return obj.expires
+    _expires.allow_tags = True
+    _expires.short_description = 'Expires'
 
 if settings.DOLPHIN_USE_GIS:
     FeatureFlagAdmin.fieldsets += (
