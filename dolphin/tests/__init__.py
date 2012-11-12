@@ -3,6 +3,7 @@ from dolphin.backends.djbackend import DjangoBackend
 from .middleware import RequestStoreMiddlewareTest
 
 if isinstance(flipper.backend, DjangoBackend):
+    from .admin import AdminTest
     from .flipper import ActiveTest, UserFlagsTest, GeoIPTest, ABTest, CustomFlagTest
     from .templatetags import ActiveTagTest, FlagListTest
     from .testutils import SetActiveTest
