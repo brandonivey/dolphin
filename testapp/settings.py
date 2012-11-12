@@ -173,3 +173,4 @@ DOLPHIN_BACKEND = {
     #'BACKEND': 'dolphin.backends.redisbackend.RedisBackend'
     'BACKEND': 'dolphin.backends.djbackend.DjangoBackend'
 }
+DOLPHIN_USE_GIS=False
