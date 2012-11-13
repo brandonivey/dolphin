@@ -176,11 +176,11 @@ class Backend(object):
         if flag.maximum_b_tests:
             #max B tests
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
-        
-        if flag.percent > 0:
-            #percentage of users
+
+        if  flag.percent > -1:
+            #percentage of users to enable feature for.
             def check_percent(flag, request):
-                return Decimal(str(random.uniform(0, 100))) <= flag.percent
+                return False if flag.percent is 0 else random.uniform(0, 100) <= flag.percent 
             enabled = enabled and self._limit('percent', flag, check_percent, request)
 
         return store(enabled)

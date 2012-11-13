@@ -175,24 +175,25 @@ class ABTest(BaseTest):
     @mock.patch('random.uniform')
     def test_random_percent(self, uniform):
         #Tests that the feature is active for random percentages
-        FeatureFlag.objects.create(name='ab_percent', percent='50.0')
-        uniform.return_value = 0.01 
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=50)
+        uniform.return_value = 1
         self.assertTrue(flipper.is_active('ab_percent'))
 
-        uniform.return_value = 51.0 
+        LocalStoreMiddleware.local.clear()
+
+        uniform.return_value = 51
         self.assertFalse(flipper.is_active('ab_percent'))
 
     def test_100_percent(self):
         #Tests that the feature is active when the percent is set to 100
-        FeatureFlag.objects.create(name='ab_percent', percent='99.9')
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=100)
         self.assertTrue(flipper.is_active('ab_percent'))
 
     def test_0_percent(self):
-        #Tests that the feature is not active for when the percent is set to 0
-        FeatureFlag.objects.create(name='ab_percent', percent='0')
+        #Tests that the feature is not active for when the percent value is set to 0
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=0)
         self.assertFalse(flipper.is_active('ab_percent'))
-
-
+        
 class CustomFlagTest(BaseTest):
     fixtures = ['dolphin_base_flags.json']
 

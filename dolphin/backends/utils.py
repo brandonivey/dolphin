@@ -26,7 +26,7 @@ class Schema(object):
 
     unicode_fields = set(('name',))
     datetime_fields = set(('b_test_start', 'b_test_end'))
-    int_fields = set(('current_b_tests', 'maximum_b_tests', 'id'))
+    int_fields = set(('current_b_tests', 'maximum_b_tests', 'id', 'percent'))
     float_fields = set(('radius',))
     none_fields = unicode_fields.union(datetime_fields).union(int_fields).union(float_fields).union(set(['group']))
 

@@ -35,8 +35,11 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         ('User flags', {
             'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group')
         }),
+        ('Roll Out', {
+            'fields': ('percent',)
+        }),
         ('A/B Tests', {
-            'fields': ('random', 'percent', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
+            'fields': ('random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
         }),
     )
 
