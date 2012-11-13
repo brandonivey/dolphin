@@ -28,6 +28,9 @@ class FeatureFlag(models.Model):
 
     #A/B testing stuff
     random = models.BooleanField(blank=True, default=False, help_text="Randomized A/B testing")
+    percent = models.DecimalField(max_digits=3, decimal_places=1, null=True,
+                                  blank=True, help_text=(
+        'A number between 0.0 and 99.9 to indicate a percentage of users for whom this flag will be active.'))
     maximum_b_tests = models.IntegerField(default=0, help_text="Maximum number of B tests, leave at 0 for infinite")
     current_b_tests = models.IntegerField(default=0, editable=True, help_text="Only updated if maximum_b_tests is set, updated once per view")
     b_test_start = models.DateTimeField(blank=True, null=True, db_index=True, help_text = "Optional start date/time of B tests")

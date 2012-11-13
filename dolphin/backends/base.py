@@ -1,7 +1,8 @@
+import datetime
+from decimal import Decimal
+import pytz
 import random
 import time
-import datetime
-import pytz
 
 from django.utils.datastructures import SortedDict
 
@@ -44,7 +45,7 @@ class Backend(object):
     def _limit(self, name, flag, func, request):
         """
         Limits the flag option to once per request, or if the option is enabled, to
-        once per session (requires the session middleware
+        once per session (requires the session middleware)
         """
         if hasattr(request, 'session') and settings.DOLPHIN_LIMIT_TO_SESSION:
             d = request.session.setdefault(name, {})
@@ -174,7 +175,12 @@ class Backend(object):
 
         if flag.maximum_b_tests:
             #max B tests
-
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
+        
+        if flag.percent > 0:
+            #percentage of users
+            def check_percent(flag, request):
+                return Decimal(str(random.uniform(0, 100))) <= flag.percent
+            enabled = enabled and self._limit('percent', flag, check_percent, request)
 
         return store(enabled)
