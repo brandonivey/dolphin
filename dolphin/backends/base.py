@@ -42,6 +42,9 @@ class Backend(object):
         dist = calc_dist(float(f_lat), float(f_lon), lat, lon)
         return dist <= ff.radius
 
+    def _check_percent(self, flag, request):
+        return False if flag.percent is 0 else random.uniform(0, 100) <= flag.percent
+
     def _limit(self, name, flag, func, request):
         """
         Limits the flag option to once per request, or if the option is enabled, to
@@ -177,10 +180,6 @@ class Backend(object):
             #max B tests
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
 
-        if  flag.percent > -1:
-            #percentage of users to enable feature for.
-            def check_percent(flag, request):
-                return False if flag.percent is 0 else random.uniform(0, 100) <= flag.percent 
-            enabled = enabled and self._limit('percent', flag, check_percent, request)
+        enabled = enabled and self._limit('percent', flag, self._check_percent, request)
 
         return store(enabled)

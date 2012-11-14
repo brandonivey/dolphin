@@ -193,7 +193,7 @@ class ABTest(BaseTest):
         #Tests that the feature is not active for when the percent value is set to 0
         FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=0)
         self.assertFalse(flipper.is_active('ab_percent'))
-        
+
 class CustomFlagTest(BaseTest):
     fixtures = ['dolphin_base_flags.json']
 
