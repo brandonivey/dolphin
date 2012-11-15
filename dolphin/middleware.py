@@ -1,7 +1,7 @@
 import threading
 
 from django.conf import settings
-
+from django.utils.encoding import smart_str
 
 class LocalStore(threading.local):
     def __setitem__(self, key, val):
@@ -45,23 +45,23 @@ class LocalStoreMiddleware(object):
         self.local['request'] = request
 
     def process_response(self, request, response):
-        self.local.clear()
 
         secure = getattr(settings, 'DOLPHIN_COOKIE_SECURE', False)
         max_age = getattr(settings, 'DOLPHIN_COOKIE_MAX_AGE', 2592000)  # 1 month
+        dolphin_cookies = self.local.get('dolphin_cookies')
 
-        #does this bit have to go here?  how about somewhere less expensive(every response)?
-        if hasattr(request, 'dolphin_cookies'):
-            for cookie in request.dolphin_cookies:
-                active = request.dolphin_cookies[cookie]
-                if not active:
-                    age = None
-                else:
-                    age = max_age
-                response.set_cookie(cookie,
-                                    value=active,
-                                    max_age=age,
-                                    secure=secure)
+        for cookie in dolphin_cookies:
+            active = dolphin_cookies[cookie]
+            if not active:
+                age = None
+            else:
+                age = max_age
+            #cookie name must be encoded since set_cookie doesn't like unicode values
+            response.set_cookie(smart_str(cookie),
+                                value=active,
+                                max_age=age,
+                                secure=secure)
+        self.local.clear()
         return response
 
     def process_exception(self, request, exception):

@@ -47,15 +47,9 @@ class Backend(object):
 
     def _limit(self, name, flag, func, request):
         """
-        Limits the flag option to once per cookie, then once per request
+        Limits the option to once per request
         and once per session if it's enabled (requires the session middleware)
         """
-        if hasattr(request, 'dolphin_cookie'):
-            cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
-            cookie = cookie_prefix % flag.name
-            if cookie in request.dolphin_cookies:
-                return request.dolphin_cookies[cookie]
-
         if hasattr(request, 'session') and settings.DOLPHIN_LIMIT_TO_SESSION:
             d = request.session.setdefault(name, {})
         else:
@@ -67,12 +61,13 @@ class Backend(object):
 
     def set_cookie(self, request, flag_name, active=True):
         """
-        Set a flag value on a request object that will
+        Set a flag value in dolphin's local store that will
         be set as a cookie in the middleware's process response function.
         """
-        if not hasattr(request, 'dolphin_cookie'):
-            request.dolphin_cookie = {}
-        request.dolphin_cookie[flag_name] = active
+        cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
+        cookie = cookie_prefix % flag_name
+        dolphin_cookies = LocalStoreMiddleware.local.setdefault('dolphin_cookies', {})
+        dolphin_cookies[cookie] = active
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -81,9 +76,15 @@ class Backend(object):
         overrides = LocalStoreMiddleware.local.setdefault('overrides', {})
         if key in overrides:
             return overrides[key]
-
         flag = self._get_flag(key)
         request = self._get_request(**kwargs)
+
+        #If there is a cookie for this flag, use it
+        if hasattr(request, 'COOKIES'):
+            cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
+            cookie = cookie_prefix % flag.name
+            if cookie in request.COOKIES:
+                return request.COOKIES[cookie]
         return False if flag is None else self._flag_is_active(flag, request)
 
     def active_flags(self, *args, **kwargs):
@@ -200,7 +201,7 @@ class Backend(object):
         if percent_active and flag.percent != 100:
            #100 percent flips the feature on and roll out mode off,
            #so there is no need for storing it in a cookie.
-           self.set_cookie(request, flag, percent_active)
+           self.set_cookie(request, flag.name, percent_active)
 
         enabled = enabled and percent_active
 

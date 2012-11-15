@@ -4,7 +4,7 @@ from .middleware import RequestStoreMiddlewareTest
 
 if isinstance(flipper.backend, DjangoBackend):
     from .admin import AdminTest
-    from .flipper import ActiveTest, UserFlagsTest, GeoIPTest, ABTest, CustomFlagTest, RollOutTest
+    from .flipper import ActiveTest, UserFlagsTest, GeoIPTest, ABTest, CustomFlagTest, RollOutTest, CookiesTest
     from .templatetags import ActiveTagTest, FlagListTest
     from .testutils import SetActiveTest
 
