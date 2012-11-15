@@ -13,7 +13,7 @@ from dolphin.backends.utils import cache_key, Schema
 class FeatureFlag(models.Model):
     name = models.SlugField(max_length=255, unique=True, db_index=True)
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
-    expires = models.DateTimeField(blank=True, null=True, db_index=True, help_text = "Displays a warning when this feature expires")
+    expires = models.DateTimeField(blank=True, null=True, help_text = "Displays a warning when this feature expires")
 
     #users
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
