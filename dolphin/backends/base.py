@@ -47,9 +47,15 @@ class Backend(object):
 
     def _limit(self, name, flag, func, request):
         """
-        Limits the flag option to once per request, or if the option is enabled, to
-        once per session (requires the session middleware)
+        Limits the flag option to once per cookie, then once per request
+        and once per session if it's enabled (requires the session middleware)
         """
+        if hasattr(request, 'dolphin_cookie'):
+            cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
+            cookie = cookie_prefix % flag.name
+            if cookie in request.dolphin_cookies:
+                return request.dolphin_cookies[cookie]
+
         if hasattr(request, 'session') and settings.DOLPHIN_LIMIT_TO_SESSION:
             d = request.session.setdefault(name, {})
         else:
@@ -58,6 +64,15 @@ class Backend(object):
         if flag.name not in d:
             d[flag.name] = func(flag, request)
         return d[flag.name]
+
+    def set_cookie(self, request, flag_name, active=True):
+        """
+        Set a flag value on a request object that will
+        be set as a cookie in the middleware's process response function. 
+        """
+        if not hasattr(request, 'dolphin_cookie'):
+            request.dolphin_cookie = {}
+        request.dolphin_cookie[flag_name] = active
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -180,6 +195,11 @@ class Backend(object):
             #max B tests
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
 
-        enabled = enabled and self._limit('percent', flag, self._check_percent, request)
+        percent_active = self._limit('percent', flag, self._check_percent, request)
+
+        if percent_active:
+           self.set_cookie(request, flag, percent_active)
+            
+        enabled = enabled and percent_active
 
         return store(enabled)

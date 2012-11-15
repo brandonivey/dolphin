@@ -1,5 +1,8 @@
 import threading
 
+from django.conf import settings
+
+
 class LocalStore(threading.local):
     def __setitem__(self, key, val):
         self.__dict__[key] = val
@@ -43,6 +46,22 @@ class LocalStoreMiddleware(object):
 
     def process_response(self, request, response):
         self.local.clear()
+
+        secure = getattr(settings, 'DOLPHIN_COOKIE_SECURE', False)
+        max_age = getattr(settings, 'DOLPHIN_COOKIE_MAX_AGE', 2592000)  # 1 month 
+
+        #does this bit have to go here?  how about somewhere less expensive(every response)?
+        if hasattr(request, 'dolphin_cookies'):
+            for cookie in request.dolphin_cookies:
+                active = request.dolphin_cookies[cookie]
+                if not active:
+                    age = None
+                else:
+                    age = max_age
+                response.set_cookie(cookie, 
+                                    value=active,
+                                    max_age=age,
+                                    secure=secure)
         return response
 
     def process_exception(self, request, exception):
