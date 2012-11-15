@@ -68,7 +68,7 @@ class Backend(object):
     def set_cookie(self, request, flag_name, active=True):
         """
         Set a flag value on a request object that will
-        be set as a cookie in the middleware's process response function. 
+        be set as a cookie in the middleware's process response function.
         """
         if not hasattr(request, 'dolphin_cookie'):
             request.dolphin_cookie = {}
@@ -197,9 +197,11 @@ class Backend(object):
 
         percent_active = self._limit('percent', flag, self._check_percent, request)
 
-        if percent_active:
+        if percent_active and flag.percent != 100:
+           #100 percent flips the feature on and roll out mode off,
+           #so there is no need for storing it in a cookie.
            self.set_cookie(request, flag, percent_active)
-            
+
         enabled = enabled and percent_active
 
         return store(enabled)

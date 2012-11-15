@@ -172,16 +172,21 @@ class ABTest(BaseTest):
 
         self.assertFalse(flipper.is_active('max'))
 
+class RollOutTest(BaseTest):
+
     @mock.patch('random.uniform')
     def test_random_percent(self, uniform):
         #Tests that the feature is active for random percentages
+        req = self._fake_request()
         FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=50)
         uniform.return_value = 1
-        self.assertTrue(flipper.is_active('ab_percent'))
+        #Need a request object to store the flag cookie
+        self.assertTrue(flipper.is_active('ab_percent', request=req))
 
         LocalStoreMiddleware.local.clear()
 
         uniform.return_value = 51
+        #Need a request object to store the cookie
         self.assertFalse(flipper.is_active('ab_percent'))
 
     def test_100_percent(self):

@@ -16,16 +16,10 @@ docs/build
 .settings/
 .cache/
 .pip-download-cache/
-storyville/conf/local_releases.py
-.coverage
-nosetests.xml
 *.orig
-coverage.xml
 pylint.properties
 pylint.txt
 pylintrcs
-solr/solr/*/data
-solr/cmg-virtualbox_DEFAULT_*
 
 # Ignore generated content
 /apache/vhosts.d/*

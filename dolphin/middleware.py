@@ -48,7 +48,7 @@ class LocalStoreMiddleware(object):
         self.local.clear()
 
         secure = getattr(settings, 'DOLPHIN_COOKIE_SECURE', False)
-        max_age = getattr(settings, 'DOLPHIN_COOKIE_MAX_AGE', 2592000)  # 1 month 
+        max_age = getattr(settings, 'DOLPHIN_COOKIE_MAX_AGE', 2592000)  # 1 month
 
         #does this bit have to go here?  how about somewhere less expensive(every response)?
         if hasattr(request, 'dolphin_cookies'):
@@ -58,7 +58,7 @@ class LocalStoreMiddleware(object):
                     age = None
                 else:
                     age = max_age
-                response.set_cookie(cookie, 
+                response.set_cookie(cookie,
                                     value=active,
                                     max_age=age,
                                     secure=secure)
