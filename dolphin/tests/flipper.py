@@ -183,14 +183,16 @@ class CookiesTest(BaseTest):
         cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
         cookie = cookie_prefix % 'cookie_flag'
         is_active = flipper.is_active('cookie_flag')
-        self.assertEqual(LocalStoreMiddleware.local.get('dolphin_cookies')[cookie], is_active)
+        self.assertEqual(LocalStoreMiddleware.local.get('dolphin_cookies')[cookie][0], is_active)
 
     def test_cookies_in_middleware(self):
         #Verify that cookies are being stored via dolphin's middleware response process
         middleware = LocalStoreMiddleware()
         req = self._fake_request()
         resp = HttpResponse()
-        cookies = {'dolphin_test_cookie1':True, 'dolphin_test_cookie2':False}
+        now = datetime.datetime.now()
+        ten_days_later = now+datetime.timedelta(days=10)
+        cookies = {'dolphin_test_cookie1':(True,ten_days_later), 'dolphin_test_cookie2':(False,ten_days_later)}
         LocalStoreMiddleware.local.setdefault('dolphin_cookies', cookies)
         response = middleware.process_response(req, resp)
         self.assertEqual(response.cookies.keys(), SimpleCookie(cookies).keys())

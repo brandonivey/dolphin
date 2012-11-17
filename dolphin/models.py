@@ -13,7 +13,7 @@ from dolphin.backends.utils import cache_key, Schema
 class FeatureFlag(models.Model):
     name = models.SlugField(max_length=255, unique=True, db_index=True)
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
-    expires = models.DateTimeField(blank=True, null=True, help_text = "Displays a warning when this feature expires")
+    expires = models.DateTimeField(blank=False, null=True, help_text="Once expired, this feature flag will be ignored and this field will be highlighted in red on change list pages and the enabled flag will be checked as a read only field.")
 
     #users
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
@@ -26,14 +26,16 @@ class FeatureFlag(models.Model):
     center = GeopositionField(null=True)
     radius = models.FloatField(blank=True, null=True, help_text="Distance in miles") #TODO - allow km/meters/etc
 
+    #roll out mode
+    percent = models.IntegerField(blank=True, default=100,
+                                  help_text=('Anytime that this field isn\'t set to 100 percent, determine if this flag should be turned on for a user based on this percentage and store the results in a cookie.  Subsequent requests will use the results stored in the cookie from the user\'s first visit until the chosen expire date(expires field on this model), in which case the cookie will expire.'))
+
     #A/B testing stuff
     random = models.BooleanField(blank=True, default=False, help_text="Randomized A/B testing")
-    percent = models.IntegerField(blank=True, default=100,
-                                  help_text=('A number between 0 and 100 to indicate a percentage of users for whom this flag will be active.  Default is set to 100 to enable this feature for everyone.'))
     maximum_b_tests = models.IntegerField(blank=True, null=True, help_text="Maximum number of B tests, use 0 for infinite")
     current_b_tests = models.IntegerField(blank=True, null=True, editable=True, help_text="Only updated if maximum_b_tests is set, updated once per view")
-    b_test_start = models.DateTimeField(blank=True, null=True, db_index=True, help_text = "Optional start date/time of B tests")
-    b_test_end = models.DateTimeField(blank=True, null=True, db_index=True, help_text = "Option end date/time of B tests")
+    b_test_start = models.DateTimeField(blank=True, null=True, db_index=True, help_text="Optional start date/time of B tests")
+    b_test_end = models.DateTimeField(blank=True, null=True, db_index=True, help_text="Option end date/time of B tests")
 
     def __unicode__(self):
         return self.name

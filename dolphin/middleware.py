@@ -1,3 +1,4 @@
+from datetime import datetime
 import threading
 
 from django.conf import settings
@@ -47,19 +48,17 @@ class LocalStoreMiddleware(object):
     def process_response(self, request, response):
 
         secure = getattr(settings, 'DOLPHIN_COOKIE_SECURE', False)
-        max_age = getattr(settings, 'DOLPHIN_COOKIE_MAX_AGE', 2592000)  # 1 month
-        dolphin_cookies = self.local.get('dolphin_cookies')
+        dolphin_cookies = self.local.setdefault('dolphin_cookies', {})
 
         for cookie in dolphin_cookies:
-            active = dolphin_cookies[cookie]
-            if not active:
-                age = None
-            else:
-                age = max_age
+            is_active = dolphin_cookies[cookie][0]
+            flag_expire = dolphin_cookies[cookie][1]
+            if flag_expire < datetime.now():
+                flag_expire = 0
             #cookie name must be encoded since set_cookie doesn't like unicode values
             response.set_cookie(smart_str(cookie),
-                                value=active,
-                                max_age=age,
+                                value=is_active,
+                                max_age=datetime.strftime(flag_expire),
                                 secure=secure)
         self.local.clear()
         return response

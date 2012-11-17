@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from decimal import Decimal
 import pytz
 import random
@@ -9,6 +9,8 @@ from django.utils.datastructures import SortedDict
 from dolphin import settings
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import get_ip, get_geoip_coords, calc_dist
+
+COOKIE_PREFIX = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
 
 class Backend(object):
     """A base backend"""
@@ -59,15 +61,14 @@ class Backend(object):
             d[flag.name] = func(flag, request)
         return d[flag.name]
 
-    def set_cookie(self, request, flag_name, active=True):
+    def set_cookie(self, request, flag, active):
         """
         Set a flag value in dolphin's local store that will
         be set as a cookie in the middleware's process response function.
         """
-        cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
-        cookie = cookie_prefix % flag_name
+        cookie = COOKIE_PREFIX % flag.name
         dolphin_cookies = LocalStoreMiddleware.local.setdefault('dolphin_cookies', {})
-        dolphin_cookies[cookie] = active
+        dolphin_cookies[cookie] = (active, flag.expires)
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -81,8 +82,7 @@ class Backend(object):
 
         #If there is a cookie for this flag, use it
         if hasattr(request, 'COOKIES'):
-            cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
-            cookie = cookie_prefix % flag.name
+            cookie = COOKIE_PREFIX % flag.name
             if cookie in request.COOKIES:
                 return request.COOKIES[cookie]
         return False if flag is None else self._flag_is_active(flag, request)
@@ -136,6 +136,11 @@ class Backend(object):
             if store_flags: flags[key] = val
             return val
 
+        if flag.expires:
+            if flag.expires < datetime.now():
+                #feature flag has expired, enable feature.
+                return store(True)
+
         if not flag.enabled:
             return store(False)
 
@@ -179,30 +184,30 @@ class Backend(object):
         if flag.b_test_start:
             #start date
             if flag.b_test_start.tzinfo is not None:
-                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                now = datetime.utcnow().replace(tzinfo=pytz.UTC)
             else:
-                now = datetime.datetime.now()
+                now = datetime.now()
             enabled = enabled and now >= flag.b_test_start
 
         if flag.b_test_end:
             #end date
             if flag.b_test_end.tzinfo is not None:
-                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                now = datetime.utcnow().replace(tzinfo=pytz.UTC)
             else:
-                now = datetime.datetime.now()
+                now = datetime.now()
             enabled = enabled and now <= flag.b_test_end
 
         if flag.maximum_b_tests:
             #max B tests
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
 
-        percent_active = self._limit('percent', flag, self._check_percent, request)
+        percent_enabled = self._limit('percent', flag, self._check_percent, request)
 
-        if percent_active and flag.percent != 100:
-           #100 percent flips the feature on and roll out mode off,
+        if flag.percent != 100:
+           #100 percent flips the feature on completely,
            #so there is no need for storing it in a cookie.
-           self.set_cookie(request, flag.name, percent_active)
+           self.set_cookie(request, flag, percent_enabled)
 
-        enabled = enabled and percent_active
+        enabled = enabled and percent_enabled
 
         return store(enabled)

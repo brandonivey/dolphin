@@ -13,13 +13,12 @@ from dolphin.admin import FeatureFlagAdmin
 from dolphin.models import FeatureFlag
 
 class AdminTest(TestCase):
-    fixtures = ['dolphin_base_flags.json']
 
     def setUp(self):
         now = datetime.now()
         self.ten_days_ago = now - timedelta(days=10)
         self.ten_days_later = now + timedelta(days=10)
-        self.feature_flag = FeatureFlag.objects.all()[0]
+        self.feature_flag = FeatureFlag.objects.create(name='expire_flag', enabled=True)
         self.feature_flag_admin = FeatureFlagAdmin(FeatureFlag, AdminSite())
 
     def test_when_flag_expires(self):
