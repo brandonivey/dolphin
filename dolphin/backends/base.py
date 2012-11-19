@@ -68,7 +68,7 @@ class Backend(object):
         """
         cookie = COOKIE_PREFIX % flag.name
         dolphin_cookies = LocalStoreMiddleware.local.setdefault('dolphin_cookies', {})
-        dolphin_cookies[cookie] = (active, flag.max_age)
+        dolphin_cookies[cookie] = (active, flag.cookie_max_age)
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -136,16 +136,16 @@ class Backend(object):
 
         def store(val):
             """quick wrapper to store the flag results if it needs to"""
-            if flag.max_age:
+            if flag.cookie_max_age:
                 self.set_cookie(request, flag, val)
-            if store_flags: 
+            if store_flags:
                 flags[key] = val
             return val
 
         if flag.expires:
             if flag.expires < datetime.now():
-                #feature flag has expired, enable feature.
-                return store(True)
+                #feature flag has expired, disable flag.
+                return store(False)
 
         if not flag.enabled:
             return store(False)

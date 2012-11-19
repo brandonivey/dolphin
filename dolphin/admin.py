@@ -5,7 +5,7 @@ from dolphin import settings
 from django import forms
 from geoposition.fields import GeopositionField
 
-from .models import FeatureFlag, ABTesting
+from .models import FeatureFlag
 
 def enable_selected(modeladmin, request, queryset):
     queryset.update(enabled=True)
@@ -22,9 +22,10 @@ class FeatureFlagForm(forms.ModelForm):
     class Meta:
         model = FeatureFlag
 
+
 class FeatureFlagAdmin(admin.ModelAdmin):
     form = FeatureFlagForm
-    list_display = ('name', 'enabled', '_expires', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
+    list_display = ('name', 'description', 'enabled', '_expires', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
     actions = [enable_selected, disable_selected]
     raw_id_fields = ('group',)
     fieldsets = (
@@ -34,6 +35,10 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         ('Options', {
             'classes': ('collapse',),
             'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group', 'percent', 'cookie_max_age')
+        }),
+        ('A/B Tests', {
+            'classes': ('collapse',),
+            'fields': ('random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
         }),
     )
 
@@ -51,13 +56,4 @@ if settings.DOLPHIN_USE_GIS:
         }),
     )
 
-class ABTestingAdmin(FeatureFlagAdmin):
-    fieldsets = (
-        ('A/B Tests', {
-            'fields': ('random', 'maximum_b_tests', 'current_b_tests', 'b_test_start', 'b_test_end')
-        }),
-    )
-    fieldsets = FeatureFlagAdmin.fieldsets + fieldsets
-
 admin.site.register(FeatureFlag, FeatureFlagAdmin)
-admin.site.register(ABTesting, ABTestingAdmin)

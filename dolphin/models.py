@@ -16,7 +16,7 @@ class FeatureFlag(models.Model):
                   help_text="Description of the feature that is being flagged")
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
     expires = models.DateTimeField(blank=True, null=True, help_text="Once expired, this feature flag will be ignored and this field will be highlighted in red on change list pages and the enabled flag will be checked as a read only field")
-    
+
     #Additional Options
     #users
     registered_only = models.BooleanField(blank=True, default=False, help_text="Limit to registered users")
@@ -34,16 +34,15 @@ class FeatureFlag(models.Model):
                                   help_text=("Enable this feature to users based on a percentage"))
     cookie_max_age = models.IntegerField(blank=True, null=True, help_text="If this field is set, store the result of this flag as a cookie in the user's browser until cookie_max_age(seconds), i.e., setting cookie_max_age=10 will expire any cookies for this flag in 10 seconds.")
 
-    def __unicode__(self):
-        return self.name
-
-class ABTesting(FeatureFlag):
     #A/B testing stuff
     random = models.BooleanField(blank=True, default=False, help_text="Randomized A/B testing")
     maximum_b_tests = models.IntegerField(blank=True, null=True, help_text="Maximum number of B tests, use 0 for infinite")
     current_b_tests = models.IntegerField(blank=True, null=True, editable=True, help_text="Only updated if maximum_b_tests is set, updated once per view")
     b_test_start = models.DateTimeField(blank=True, null=True, db_index=True, help_text="Optional start date/time of B tests")
     b_test_end = models.DateTimeField(blank=True, null=True, db_index=True, help_text="Option end date/time of B tests")
+
+    def __unicode__(self):
+        return self.name
 
 def delete_cache_receiver(sender, instance, **kwargs):
     if settings.DOLPHIN_CACHE:
