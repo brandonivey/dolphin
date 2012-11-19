@@ -52,13 +52,13 @@ class LocalStoreMiddleware(object):
 
         for cookie in dolphin_cookies:
             is_active = dolphin_cookies[cookie][0]
-            flag_expire = dolphin_cookies[cookie][1]
-            if flag_expire < datetime.now():
-                flag_expire = 0
+            max_age = dolphin_cookies[cookie][1]
+            if not max_age:
+                max_age = 0
             #cookie name must be encoded since set_cookie doesn't like unicode values
             response.set_cookie(smart_str(cookie),
                                 value=is_active,
-                                max_age=datetime.strftime(flag_expire),
+                                max_age=max_age,
                                 secure=secure)
         self.local.clear()
         return response

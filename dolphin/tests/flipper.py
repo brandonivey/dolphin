@@ -175,11 +175,14 @@ class ABTest(BaseTest):
 class CookiesTest(BaseTest):
     """Make sure dolphin knows what to do with cookies"""
 
-    @mock.patch('random.uniform')
-    def test_cookies_in_local_store(self, uniform):
+    def setUp(self):
+        now = datetime.datetime.now()
+        self.ten_days_ago = now - datetime.timedelta(days=10)
+        self.ten_days_later = now + datetime.timedelta(days=10)
+
+    def test_cookies_in_local_store(self):
         #Verify that cookies are being stored in dolphin's local store correctly
-        FeatureFlag.objects.create(name='cookie_flag', enabled=True, percent=50)
-        uniform.return_value = 1
+        FeatureFlag.objects.create(name='cookie_flag', enabled=True, cookie_max_age=self.ten_days_later)
         cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
         cookie = cookie_prefix % 'cookie_flag'
         is_active = flipper.is_active('cookie_flag')
@@ -190,9 +193,7 @@ class CookiesTest(BaseTest):
         middleware = LocalStoreMiddleware()
         req = self._fake_request()
         resp = HttpResponse()
-        now = datetime.datetime.now()
-        ten_days_later = now+datetime.timedelta(days=10)
-        cookies = {'dolphin_test_cookie1':(True,ten_days_later), 'dolphin_test_cookie2':(False,ten_days_later)}
+        cookies = {'dolphin_test_cookie1':(True, self.ten_days_later),  'dolphin_test_cookie2':(False, self.ten_days_later)}
         LocalStoreMiddleware.local.setdefault('dolphin_cookies', cookies)
         response = middleware.process_response(req, resp)
         self.assertEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
@@ -205,13 +206,28 @@ class CookiesTest(BaseTest):
         #Verify that cookies are being retrieved properly
         cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
         cookie = cookie_prefix % 'cookie_flag'
-        FeatureFlag.objects.create(name='cookie_flag', enabled=True, percent=100)
+        FeatureFlag.objects.create(name='cookie_flag', enabled=True, expire_cookie=self.ten_days_later) 
         req = self._fake_request()
-        #Cookie values take precedent over the is_active logic with a simple short circuit
+        #Cookie values are the 2nd ones checked after overrides in the is active function. 
+        #When cookies are found in the request object, they will be used.
         req.COOKIES = {cookie: False}
         self.assertFalse(flipper.is_active('cookie_flag', request=req))
         req.COOKIES = {cookie: True}
         self.assertTrue(flipper.is_active('cookie_flag', request=req))
+
+    def test_verify_that_cookies_are_expiring_properly(self):
+        #Verify that cookies expire based on the expiration date
+        middleware = LocalStoreMiddleware()
+        req = self._fake_request()
+        resp = HttpResponse()
+        cookies = {'dolphin_test_cookie1':(True, self.ten_days_ago)}
+        LocalStoreMiddleware.local.setdefault('dolphin_cookies', cookies)
+        response = middleware.process_response(req, resp)
+        self.assertEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
+        #Clear cookies
+        response.cookies = {}
+        #Verify that we've cleaned up the cookies
+        self.assertNotEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
 
 class RollOutTest(BaseTest):
     """Test the roll out feature"""

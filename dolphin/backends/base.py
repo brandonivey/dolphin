@@ -68,7 +68,7 @@ class Backend(object):
         """
         cookie = COOKIE_PREFIX % flag.name
         dolphin_cookies = LocalStoreMiddleware.local.setdefault('dolphin_cookies', {})
-        dolphin_cookies[cookie] = (active, flag.expires)
+        dolphin_cookies[cookie] = (active, flag.max_age)
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -80,12 +80,15 @@ class Backend(object):
         flag = self._get_flag(key)
         request = self._get_request(**kwargs)
 
+        if flag is None:
+            return False
+
         #If there is a cookie for this flag, use it
         if hasattr(request, 'COOKIES'):
             cookie = COOKIE_PREFIX % flag.name
             if cookie in request.COOKIES:
                 return request.COOKIES[cookie]
-        return False if flag is None else self._flag_is_active(flag, request)
+        return self._flag_is_active(flag, request)
 
     def active_flags(self, *args, **kwargs):
         """Returns active flags for the current request"""
@@ -133,7 +136,10 @@ class Backend(object):
 
         def store(val):
             """quick wrapper to store the flag results if it needs to"""
-            if store_flags: flags[key] = val
+            if flag.max_age:
+                self.set_cookie(request, flag, val)
+            if store_flags: 
+                flags[key] = val
             return val
 
         if flag.expires:
@@ -202,11 +208,6 @@ class Backend(object):
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
 
         percent_enabled = self._limit('percent', flag, self._check_percent, request)
-
-        if flag.percent != 100:
-           #100 percent flips the feature on completely,
-           #so there is no need for storing it in a cookie.
-           self.set_cookie(request, flag, percent_enabled)
 
         enabled = enabled and percent_enabled
 
