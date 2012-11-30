@@ -15,7 +15,7 @@ class FeatureFlag(models.Model):
     description = models.CharField(max_length=150, default='', blank=True,
                   help_text="Description of the feature that is being flagged")
     enabled = models.BooleanField(blank=True, default=False, help_text="Flag is in use, if unchecked will be disabled altogether", db_index=True)
-    expires = models.DateTimeField(blank=True, null=True, help_text="Notify in the admin when this flag expires on change list pages by displaying this value in red.")
+    expiration_warning = models.DateTimeField(blank=True, null=True, help_text="Notify in the admin when this flag expires on change list pages by displaying this value in red.")
 
     #Additional Options
     #users

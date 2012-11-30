@@ -36,17 +36,19 @@ class FeatureFlagAdmin(admin.ModelAdmin):
 
         css = {
             "all": ('%sdolphin/css/geoposition.css' % django_settings.ADMIN_TOOLS_MEDIA_URL,
-                    '%scss/jquery-ui-1.8.4.custom.css ' % django_settings.ADMIN_TOOLS_MEDIA_URL)
+                    '%scss/jquery-ui-1.8.4.custom.css ' % django_settings.ADMIN_TOOLS_MEDIA_URL,
+                    '%sdolphin/css/dolphin.admin.css ' % django_settings.ADMIN_TOOLS_MEDIA_URL)
             }
 
     form = FeatureFlagForm
-    list_display = ('name', 'description', 'enabled', '_expires', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
+    list_display = ('name', 'description', 'enabled', '_expiration_warning', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo', '_sites_display')
+    list_filter = ('enabled','sites',)
     filter_horizontal = ('sites',)
     actions = [enable_selected, disable_selected]
     raw_id_fields = ('group',)
     fieldsets = (
         ('Metadata', {
-            'fields': ('name', 'description', 'enabled', 'expires')
+            'fields': ('name', 'description', 'enabled', 'expiration_warning')
         }),
         ('Options', {
             'classes': ('collapse',),
@@ -59,15 +61,22 @@ class FeatureFlagAdmin(admin.ModelAdmin):
     )
 
     def _sites_display(self, obj):
-        return ", ".join([sites.domain for sites in sites.all()])
+        """return a list of sites suitable for display in the admin"""
+        if obj.enable_for_sites:
+            return '<span style="color:green">Enabled for: <br />%s</span>' % ", ".join([site.domain for site in obj.sites.all()])
+        if obj.disable_for_sites:
+            return '<span style="color:red">Disabled for: <br />%s</span>' % ", ".join([site.domain for site in obj.sites.all()])
+        return ''
+    _sites_display.allow_tags = True
     _sites_display.short_description = 'Sites'
 
-    def _expires(self, obj):
-        if obj.expires and obj.expires < datetime.now():
-            return '<span style="color:red">%s</span>' % obj.expires
-        return obj.expires
-    _expires.allow_tags = True
-    _expires.short_description = 'Expires'
+    def _expiration_warning(self, obj):
+        if obj.expiration_warning and obj.expiration_warning < datetime.now():
+            return '<span style="color:red">%s</span>' % obj.expiration_warning
+        return obj.expiration_warning
+    _expiration_warning.allow_tags = True
+    _expiration_warning.short_description = 'Expiration Warning'
+
 
 if settings.DOLPHIN_USE_GIS:
     FeatureFlagAdmin.fieldsets += (
