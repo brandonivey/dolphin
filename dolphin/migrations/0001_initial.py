@@ -22,6 +22,8 @@ class Migration(SchemaMigration):
             ('enable_geo', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
             ('center', self.gf('geoposition.fields.GeopositionField')(max_length=42, null=True)),
             ('radius', self.gf('django.db.models.fields.FloatField')(null=True, blank=True)),
+            ('enable_for_sites', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
+            ('disable_for_sites', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
             ('percent', self.gf('django.db.models.fields.IntegerField')(default=100, blank=True)),
             ('cookie_max_age', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
             ('random', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
@@ -32,11 +34,22 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('dolphin', ['FeatureFlag'])
 
+        # Adding M2M table for field sites on 'FeatureFlag'
+        db.create_table('dolphin_featureflag_sites', (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('featureflag', models.ForeignKey(orm['dolphin.featureflag'], null=False)),
+            ('site', models.ForeignKey(orm['sites.site'], null=False))
+        ))
+        db.create_unique('dolphin_featureflag_sites', ['featureflag_id', 'site_id'])
+
 
     def backwards(self, orm):
 
         # Deleting model 'FeatureFlag'
         db.delete_table('dolphin_featureflag')
+
+        # Removing M2M table for field sites on 'FeatureFlag'
+        db.delete_table('dolphin_featureflag_sites')
 
 
     models = {
@@ -68,6 +81,8 @@ class Migration(SchemaMigration):
             'cookie_max_age': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'current_b_tests': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '150', 'blank': 'True'}),
+            'disable_for_sites': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
+            'enable_for_sites': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'enable_geo': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True', 'blank': 'True'}),
             'expires': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
@@ -80,7 +95,20 @@ class Migration(SchemaMigration):
             'radius': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'random': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'registered_only': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
+            'sites': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['sites.Site']", 'null': 'True', 'blank': 'True'}),
             'staff_only': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'})
+        },
+        'sites.site': {
+            'Meta': {'object_name': 'Site', 'db_table': "'django_site'"},
+            'domain': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'language': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'market': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'media_type': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'music_format': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'site_type': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'status': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'})
         }
     }
 

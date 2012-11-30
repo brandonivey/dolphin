@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib import admin
+from django.conf import settings as django_settings
 from dolphin import settings
 from django import forms
 from geoposition.fields import GeopositionField
@@ -24,17 +25,32 @@ class FeatureFlagForm(forms.ModelForm):
 
 
 class FeatureFlagAdmin(admin.ModelAdmin):
+    class Media:
+        #TODO: change django_settings.ADMIN_TOOLS_MEDIA_URL to a more standard setting like STATIC_URL
+        #settings.ADMIN_TOOLS_MEDIA_URL is medley specific.
+        js = (
+            '%sdolphin/js/geoposition.js' % django_settings.ADMIN_TOOLS_MEDIA_URL,
+            '%sdolphin/js/dolphin.admin.js' % django_settings.ADMIN_TOOLS_MEDIA_URL,
+            '%sjavascript/jquery/ui/jquery-ui-1.8.4.custom.js' % django_settings.ADMIN_TOOLS_MEDIA_URL
+            )
+
+        css = {
+            "all": ('%sdolphin/css/geoposition.css' % django_settings.ADMIN_TOOLS_MEDIA_URL,
+                    '%scss/jquery-ui-1.8.4.custom.css ' % django_settings.ADMIN_TOOLS_MEDIA_URL)
+            }
+
     form = FeatureFlagForm
     list_display = ('name', 'description', 'enabled', '_expires', 'registered_only', 'staff_only', 'limit_to_group', 'enable_geo')
+    filter_horizontal = ('sites',)
     actions = [enable_selected, disable_selected]
     raw_id_fields = ('group',)
     fieldsets = (
-        (None, {
+        ('Metadata', {
             'fields': ('name', 'description', 'enabled', 'expires')
         }),
         ('Options', {
             'classes': ('collapse',),
-            'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group', 'percent', 'cookie_max_age')
+            'fields': ('registered_only', 'staff_only', 'limit_to_group', 'group', 'percent', 'enable_for_sites', 'disable_for_sites', 'sites', 'cookie_max_age')
         }),
         ('A/B Tests', {
             'classes': ('collapse',),
@@ -42,8 +58,12 @@ class FeatureFlagAdmin(admin.ModelAdmin):
         }),
     )
 
+    def _sites_display(self, obj):
+        return ", ".join([sites.domain for sites in sites.all()])
+    _sites_display.short_description = 'Sites'
+
     def _expires(self, obj):
-        if obj.expires < datetime.now():
+        if obj.expires and obj.expires < datetime.now():
             return '<span style="color:red">%s</span>' % obj.expires
         return obj.expires
     _expires.allow_tags = True

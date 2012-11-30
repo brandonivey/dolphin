@@ -22,7 +22,7 @@ class Schema(object):
         return True if x == 'True' else False
 
     bool_fields = set(('registered_only', 'enabled', 'staff_only', 'random',
-                   'limit_to_group', 'enable_geo'))
+                   'limit_to_group', 'enable_geo', 'enable_for_sites', 'disable_for_sites'))
 
     unicode_fields = set(('name', 'description'))
     datetime_fields = set(('b_test_start', 'b_test_end'))

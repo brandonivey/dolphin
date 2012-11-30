@@ -4,6 +4,7 @@ import pytz
 import random
 import time
 
+from django.conf import settings as django_settings
 from django.utils.datastructures import SortedDict
 
 from dolphin import settings
@@ -18,6 +19,9 @@ class Backend(object):
         self.backend_settings = kwargs
 
     def _check_maxb(self, flag, request):
+        raise NotImplementedError("Must be overriden by backend")
+
+    def _enabled_for_site(self, flag):
         raise NotImplementedError("Must be overriden by backend")
 
     def _get_flag(self, key):
@@ -44,7 +48,7 @@ class Backend(object):
         dist = calc_dist(float(f_lat), float(f_lon), lat, lon)
         return dist <= ff.radius
 
-    def _check_percent(self, flag, request):
+    def _check_percent(self, flag):
         return False if flag.percent is 0 else random.uniform(0, 100) <= flag.percent
 
     def _limit(self, name, flag, func, request):
@@ -58,7 +62,7 @@ class Backend(object):
             d = LocalStoreMiddleware.local.setdefault(name, {})
 
         if flag.name not in d:
-            d[flag.name] = func(flag, request)
+            d[flag.name] = func(flag)
         return d[flag.name]
 
     def set_cookie(self, request, flag, active):
@@ -142,12 +146,11 @@ class Backend(object):
                 flags[key] = val
             return val
 
-        if flag.expires:
-            if flag.expires < datetime.now():
-                #feature flag has expired, disable flag.
-                return store(False)
-
         if not flag.enabled:
+            return store(False)
+
+        enabled_for_site = self._limit('enabled_for_site', flag, self._enabled_for_site, request)
+        if not enabled_for_site:
             return store(False)
 
         enabled = True
@@ -181,7 +184,7 @@ class Backend(object):
         #A/B flags
         if flag.random:
             #doing this so that the random key is only calculated once per request
-            def rand_bool(flag, request):
+            def rand_bool(flag):
                 random.seed(time.time())
                 return bool(random.randrange(0, 2))
 
