@@ -4,6 +4,7 @@ import mock
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import Http404, HttpResponseRedirect, HttpResponse, SimpleCookie
 from django.test import TestCase
+from django.contrib.sites.models import Site
 
 from dolphin import flipper
 from dolphin import settings
@@ -270,3 +271,44 @@ class CustomFlagTest(BaseTest):
         flipper.register_check('enabled', lambda x, **kwargs: False)
         self.assertFalse(flipper.is_active('enabled'))
 
+
+class SitesTest(BaseTest):
+    fixtures = ['dolphin_base_flags.json']
+
+    def test_enable_for_sites(self):
+        #Tests that the feature is active for only the enabled sites
+        site = Site.objects.get_current()
+        flag = FeatureFlag.objects.create(name='enable_test', enabled=True)
+ 
+        # with enable_for_sites set to false it should be active
+        self.assertTrue(flipper.is_active('enable_test'))
+
+        LocalStoreMiddleware.local.clear()
+
+        # set enable_for_sites to true without any sites should be inactive
+        flag.enable_for_sites = True
+        flag.save()
+        self.assertFalse(flipper.is_active('enable_test'))
+ 
+        LocalStoreMiddleware.local.clear()
+
+        # now add the current site, it should be active
+        flag.sites.add(site)
+        self.assertTrue(flipper.is_active('enable_test'))
+
+
+    def test_disable_for_site(self):
+        #Tests that the feature is inactive for the sites specified
+        site = Site.objects.get_current()
+        flag = FeatureFlag.objects.create(name='disabled_test', enabled=True)
+ 
+        # disable_for_sites without any sites should be active
+        flag.disable_for_sites = True
+        flag.save()
+        self.assertTrue(flipper.is_active('disabled_test'))
+ 
+        LocalStoreMiddleware.local.clear()
+
+        # now add the current site, it should be inactive
+        flag.sites.add(site)
+        self.assertFalse(flipper.is_active('disabled_test'))
