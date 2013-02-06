@@ -20,6 +20,11 @@ Features
 
 * Limit to or exclude for certain sites
 
+* Set cookies and expiration time so that flag results can be stored in users browsers.
+
+* Expiration warning to notify users that flag has expired.  When the flag expires, you'll see the date in a red font on the change list page.
+
+* Roll out mode - Enable feature gradually to a percentage of users with a percentage slider.
 
 Usage
 *****
