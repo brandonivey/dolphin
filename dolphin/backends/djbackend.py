@@ -1,6 +1,7 @@
 import copy
 
 from django.db.models import F
+from django.conf import settings as django_settings
 from django.core.cache import cache
 
 from dolphin import settings
@@ -10,6 +11,8 @@ from dolphin.utils import DefaultDict
 from .utils import Schema, cache_key
 from .base import Backend as BaseBackend
 
+#Utilize a more granular caching timeout value for queries that involve the sites many to many field
+DOLPHIN_SITES_CACHE_TIMEOUT = getattr(settings, 'DOLPHIN_SITES_CACHE_TIMEOUT', 1)
 
 class DjangoBackend(BaseBackend):
     """
@@ -18,7 +21,7 @@ class DjangoBackend(BaseBackend):
     cache for each flag if DOLPHIN_STORE_FLAGS is True.
     """
 
-    def _check_maxb(self, flag, request):
+    def _check_maxb(self, flag):
         maxt = flag.maximum_b_tests
         if flag.current_b_tests >= flag.maximum_b_tests:
             return False
@@ -28,11 +31,34 @@ class DjangoBackend(BaseBackend):
             cache.delete(cache_key(flag.name))
         return True
 
+    def _enabled_for_site(self, flag):
+        """ Check to see if this flag is enabled for this site.
+            Cache the results for DOLPHIN_SITES_CACHE_TIMEOUT seconds.
+        """
+        sites_cache_key = "%s%s" % (cache_key(flag.name), django_settings.SITE_ID)
+        if settings.DOLPHIN_CACHE:
+            site_enabled = cache.get(sites_cache_key)
+            if site_enabled is not None:
+                return site_enabled
+
+        if not flag.enable_for_sites and not flag.disable_for_sites:
+            return True
+
+        if flag.enable_for_sites:
+            site_enabled = FeatureFlag.objects.filter(sites=django_settings.SITE_ID).exists()
+        else:
+            site_enabled = not FeatureFlag.objects.filter(sites=django_settings.SITE_ID).exists()
+
+        if settings.DOLPHIN_CACHE:
+            cache.set(sites_cache_key, site_enabled,  DOLPHIN_SITES_CACHE_TIMEOUT)
+
+        return site_enabled
+
     def _get_flag(self, key):
         if settings.DOLPHIN_CACHE:
             ff = cache.get(cache_key(key))
             if ff is not None:
-                return DefaultDict(Schema().parse(ff))
+              return DefaultDict(Schema().parse(ff))
 
         try:
             ff = FeatureFlag.objects.get(name=key)

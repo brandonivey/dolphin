@@ -1,13 +1,17 @@
+from datetime import datetime
+from decimal import Decimal
+import pytz
 import random
 import time
-import datetime
-import pytz
 
+from django.conf import settings as django_settings
 from django.utils.datastructures import SortedDict
 
 from dolphin import settings
 from dolphin.middleware import LocalStoreMiddleware
 from dolphin.utils import get_ip, get_geoip_coords, calc_dist
+
+COOKIE_PREFIX = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
 
 class Backend(object):
     """A base backend"""
@@ -15,6 +19,9 @@ class Backend(object):
         self.backend_settings = kwargs
 
     def _check_maxb(self, flag, request):
+        raise NotImplementedError("Must be overriden by backend")
+
+    def _enabled_for_site(self, flag):
         raise NotImplementedError("Must be overriden by backend")
 
     def _get_flag(self, key):
@@ -41,10 +48,13 @@ class Backend(object):
         dist = calc_dist(float(f_lat), float(f_lon), lat, lon)
         return dist <= ff.radius
 
+    def _check_percent(self, flag):
+        return False if flag.percent is 0 else random.uniform(0, 100) <= flag.percent
+
     def _limit(self, name, flag, func, request):
         """
-        Limits the flag option to once per request, or if the option is enabled, to
-        once per session (requires the session middleware
+        Limits the option to once per request
+        and once per session if it's enabled (requires the session middleware)
         """
         if hasattr(request, 'session') and settings.DOLPHIN_LIMIT_TO_SESSION:
             d = request.session.setdefault(name, {})
@@ -52,8 +62,17 @@ class Backend(object):
             d = LocalStoreMiddleware.local.setdefault(name, {})
 
         if flag.name not in d:
-            d[flag.name] = func(flag, request)
+            d[flag.name] = func(flag)
         return d[flag.name]
+
+    def set_cookie(self, request, flag, active):
+        """
+        Set a flag value in dolphin's local store that will
+        be set as a cookie in the middleware's process response function.
+        """
+        cookie = COOKIE_PREFIX % flag.name
+        dolphin_cookies = LocalStoreMiddleware.local.setdefault('dolphin_cookies', {})
+        dolphin_cookies[cookie] = (active, flag.cookie_max_age)
 
     def is_active(self, key, *args, **kwargs):
         """
@@ -62,10 +81,18 @@ class Backend(object):
         overrides = LocalStoreMiddleware.local.setdefault('overrides', {})
         if key in overrides:
             return overrides[key]
-
         flag = self._get_flag(key)
         request = self._get_request(**kwargs)
-        return False if flag is None else self._flag_is_active(flag, request)
+
+        if flag is None:
+            return False
+
+        #If there is a cookie for this flag, use it
+        if hasattr(request, 'COOKIES'):
+            cookie = COOKIE_PREFIX % flag.name
+            if cookie in request.COOKIES:
+                return request.COOKIES[cookie]
+        return self._flag_is_active(flag, request)
 
     def active_flags(self, *args, **kwargs):
         """Returns active flags for the current request"""
@@ -78,7 +105,7 @@ class Backend(object):
             group_id = flag.group_id
         else:
             group_id = flag.group # for the cache objects and redis
-        return bool(request.user.groups.filter(id=group_id).exists())
+        return request.user.groups.filter(id=group_id).exists()
 
     def _flag_key(self, ff, request):
         """
@@ -113,10 +140,17 @@ class Backend(object):
 
         def store(val):
             """quick wrapper to store the flag results if it needs to"""
-            if store_flags: flags[key] = val
+            if flag.cookie_max_age:
+                self.set_cookie(request, flag, val)
+            if store_flags:
+                flags[key] = val
             return val
 
         if not flag.enabled:
+            return store(False)
+
+        enabled_for_site = self._limit('enabled_for_site', flag, self._enabled_for_site, request)
+        if not enabled_for_site:
             return store(False)
 
         enabled = True
@@ -133,7 +167,8 @@ class Backend(object):
                 if flag.registered_only:
                     enabled = enabled and True
 
-        if enabled == False: return store(enabled)
+        if enabled == False:
+            return store(enabled)
 
         if flag.enable_geo:
             #distance based
@@ -143,12 +178,13 @@ class Backend(object):
             else:
                 enabled = enabled and self._in_circle(flag, x[0], x[1])
 
-        if enabled == False: return store(enabled)
+        if enabled == False:
+            return store(enabled)
 
         #A/B flags
         if flag.random:
             #doing this so that the random key is only calculated once per request
-            def rand_bool(flag, request):
+            def rand_bool(flag):
                 random.seed(time.time())
                 return bool(random.randrange(0, 2))
 
@@ -157,22 +193,25 @@ class Backend(object):
         if flag.b_test_start:
             #start date
             if flag.b_test_start.tzinfo is not None:
-                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                now = datetime.utcnow().replace(tzinfo=pytz.UTC)
             else:
-                now = datetime.datetime.now()
+                now = datetime.now()
             enabled = enabled and now >= flag.b_test_start
 
         if flag.b_test_end:
             #end date
             if flag.b_test_end.tzinfo is not None:
-                now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+                now = datetime.utcnow().replace(tzinfo=pytz.UTC)
             else:
-                now = datetime.datetime.now()
+                now = datetime.now()
             enabled = enabled and now <= flag.b_test_end
 
         if flag.maximum_b_tests:
             #max B tests
-
             enabled = enabled and self._limit('maxb', flag, self._check_maxb, request)
+
+        percent_enabled = self._limit('percent', flag, self._check_percent, request)
+
+        enabled = enabled and percent_enabled
 
         return store(enabled)

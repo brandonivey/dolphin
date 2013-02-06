@@ -1,4 +1,8 @@
+from datetime import datetime
 import threading
+
+from django.conf import settings
+from django.utils.encoding import smart_str
 
 class LocalStore(threading.local):
     def __setitem__(self, key, val):
@@ -42,6 +46,20 @@ class LocalStoreMiddleware(object):
         self.local['request'] = request
 
     def process_response(self, request, response):
+
+        secure = getattr(settings, 'DOLPHIN_COOKIE_SECURE', False)
+        dolphin_cookies = self.local.setdefault('dolphin_cookies', {})
+
+        for cookie in dolphin_cookies:
+            is_active = dolphin_cookies[cookie][0]
+            max_age = dolphin_cookies[cookie][1]
+            if not max_age:
+                max_age = 0
+            #cookie name must be encoded since set_cookie doesn't like unicode values
+            response.set_cookie(smart_str(cookie),
+                                value=is_active,
+                                max_age=max_age,
+                                secure=secure)
         self.local.clear()
         return response
 

@@ -22,11 +22,11 @@ class Schema(object):
         return True if x == 'True' else False
 
     bool_fields = set(('registered_only', 'enabled', 'staff_only', 'random',
-                   'limit_to_group', 'enable_geo'))
+                   'limit_to_group', 'enable_geo', 'enable_for_sites', 'disable_for_sites'))
 
-    unicode_fields = set(('name',))
+    unicode_fields = set(('name', 'description'))
     datetime_fields = set(('b_test_start', 'b_test_end'))
-    int_fields = set(('current_b_tests', 'maximum_b_tests', 'id'))
+    int_fields = set(('current_b_tests', 'maximum_b_tests', 'id', 'percent', 'cookie_max_age'))
     float_fields = set(('radius',))
     none_fields = unicode_fields.union(datetime_fields).union(int_fields).union(float_fields).union(set(['group']))
 

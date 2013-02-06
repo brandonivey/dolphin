@@ -1,0 +1,25 @@
+.DS_Store
+*.pyc
+*.pyo
+*.egg-info
+ve
+pip-log.txt
+*~
+*#
+.#*
+*.sw[op]
+.ropeproject
+docs/build
+
+.project
+.pydevproject
+.settings/
+.cache/
+.pip-download-cache/
+*.orig
+pylint.properties
+pylint.txt
+pylintrcs
+
+# Ignore generated content
+/apache/vhosts.d/*

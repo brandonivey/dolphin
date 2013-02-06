@@ -2,8 +2,9 @@ import datetime
 import mock
 
 from django.contrib.auth.models import User, AnonymousUser
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse, SimpleCookie
 from django.test import TestCase
+from django.contrib.sites.models import Site
 
 from dolphin import flipper
 from dolphin import settings
@@ -67,7 +68,7 @@ class UserFlagsTest(BaseTest):
     fixtures = ['dolphin_users.json', 'dolphin_user_flags.json']
 
     def test_registered(self):
-        """Tests the registered user only flags"""
+        #Tests the registered user only flags
         req = self._fake_request()
         req.user = User.objects.get(username='registered')
         #registered user
@@ -77,7 +78,7 @@ class UserFlagsTest(BaseTest):
         self.assertFalse(flipper.is_active("registered_only", request=req))
 
     def test_staff(self):
-        """Tests the staff only flags"""
+        #Tests the staff only flags
         settings.DOLPHIN_STORE_FLAGS=False
         req = self._fake_request()
         req.user = User.objects.get(username='registered')
@@ -91,7 +92,7 @@ class UserFlagsTest(BaseTest):
         self.assertTrue(flipper.is_active("staff_only", request=req))
 
     def test_users(self):
-        """Tests the user specific flags"""
+        #Tests the user specific flags
         req = self._fake_request()
         user = User.objects.get(username='registered')
         req.user = user
@@ -110,12 +111,12 @@ class GeoIPTest(BaseTest):
     def test_regional_flag(self):
         try:
             from django.contrib.gis.utils import geoip
-            if hasattr(geoip,'HAS_GEOIP') and geoip.HAS_GEOIP:
+            if hasattr(geoip,'HAS_GEOIP') and not geoip.HAS_GEOIP:
                 return self.skipTest('GIS not installed. Skipping GeoIPTest')
         except Exception:
             return self.skipTest('GIS not installed. Skipping GeoIPTest')
 
-        """Tests that the regional flag works properly for IP address detection and distance"""
+        #Tests that the regional flag works properly for IP address detection and distance
         req = self._fake_request()
         req.META = {'REMOTE_ADDR':'4.2.2.2'}
         #within 100 miles of coord (69 or so)
@@ -137,7 +138,7 @@ class ABTest(BaseTest):
     fixtures = ['dolphin_ab_flags.json']
 
     def test_start(self):
-        """Tests that the start datetime for A/B tests is working"""
+        #Tests that the start datetime for A/B tests is working
         now = datetime.datetime.now()
         FeatureFlag.objects.create(name='start_passed', enabled=True, b_test_start=now-datetime.timedelta(days=1))
         FeatureFlag.objects.create(name='start_tomorrow', enabled=True, b_test_start=now+datetime.timedelta(days=1))
@@ -146,7 +147,7 @@ class ABTest(BaseTest):
         self.assertFalse(flipper.is_active('start_tomorrow'))
 
     def test_end(self):
-        """Tests that the end datetime for A/B tests is working"""
+        #Tests that the end datetime for A/B tests is working
         now = datetime.datetime.now()
         FeatureFlag.objects.create(name='end_passed', enabled=True, b_test_end=now-datetime.timedelta(days=1))
         FeatureFlag.objects.create(name='end_tomorrow', enabled=True, b_test_end=now+datetime.timedelta(days=1))
@@ -156,7 +157,7 @@ class ABTest(BaseTest):
 
     @mock.patch('random.randrange')
     def test_random(self, randrange):
-        """Tests that the random flag is working correctly"""
+        #Tests that the random flag is working correctly
         randrange.return_value = 1
         self.assertTrue(flipper.is_active('ab_random'))
 
@@ -165,12 +166,95 @@ class ABTest(BaseTest):
         self.assertFalse(flipper.is_active('ab_random'))
 
     def test_max(self):
-        """Tests that the max run for A/B tests is working"""
+        #Tests that the max run for A/B tests is working
         for i in xrange(0, 5):
             self.assertTrue(flipper.is_active('max'))
             LocalStoreMiddleware.local.clear()
 
         self.assertFalse(flipper.is_active('max'))
+
+class CookiesTest(BaseTest):
+    """Make sure dolphin knows what to do with cookies"""
+
+    def setUp(self):
+        self.one_hour_later = 60*60*60
+
+    def test_cookies_in_local_store(self):
+        #Verify that cookies are being stored in dolphin's local store correctly
+        FeatureFlag.objects.create(name='cookie_flag', enabled=True, cookie_max_age=self.one_hour_later)
+        cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
+        cookie = cookie_prefix % 'cookie_flag'
+        is_active = flipper.is_active('cookie_flag')
+        self.assertEqual(LocalStoreMiddleware.local.get('dolphin_cookies')[cookie][0], is_active)
+
+    def test_cookies_in_middleware(self):
+        #Verify that cookies are being stored via dolphin's middleware response process
+        middleware = LocalStoreMiddleware()
+        req = self._fake_request()
+        resp = HttpResponse()
+        cookies = {'dolphin_test_cookie1':(True, self.one_hour_later),  'dolphin_test_cookie2':(False, self.one_hour_later)}
+        LocalStoreMiddleware.local.setdefault('dolphin_cookies', cookies)
+        response = middleware.process_response(req, resp)
+        self.assertEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
+        #Clear cookies
+        response.cookies = {}
+        #Verify that we've cleaned up the cookies
+        self.assertNotEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
+
+    def test_cookies_being_retrieved_properly(self):
+        #Verify that cookies are being retrieved properly
+        cookie_prefix = getattr(settings, 'DOLPHIN_COOKIE', 'dolphin_%s')
+        cookie = cookie_prefix % 'cookie_flag'
+        FeatureFlag.objects.create(name='cookie_flag', enabled=True, cookie_max_age=self.one_hour_later)
+        req = self._fake_request()
+        #Cookie values are the 2nd ones checked after overrides in the is active function.
+        #When cookies are found in the request object, they will be used.
+        req.COOKIES = {cookie: False}
+        self.assertFalse(flipper.is_active('cookie_flag', request=req))
+        req.COOKIES = {cookie: True}
+        self.assertTrue(flipper.is_active('cookie_flag', request=req))
+
+    def test_verify_that_cookies_are_expiring_properly(self):
+        #Verify that cookies expire based on the expiration date
+        middleware = LocalStoreMiddleware()
+        req = self._fake_request()
+        resp = HttpResponse()
+        cookies = {'dolphin_test_cookie1':(True, 0)}
+        LocalStoreMiddleware.local.setdefault('dolphin_cookies', cookies)
+        response = middleware.process_response(req, resp)
+        self.assertEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
+        #Clear cookies
+        response.cookies = {}
+        #Verify that we've cleaned up the cookies
+        self.assertNotEqual(response.cookies.keys(), SimpleCookie(cookies).keys())
+
+class PercentageTest(BaseTest):
+    """Test the roll out feature"""
+
+    @mock.patch('random.uniform')
+    def test_random_percent(self, uniform):
+        #Tests that the feature is active for random percentages
+        req = self._fake_request()
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=50)
+        uniform.return_value = 1
+        #Need a request object to store the flag cookie
+        self.assertTrue(flipper.is_active('ab_percent'))
+
+        LocalStoreMiddleware.local.clear()
+
+        uniform.return_value = 51
+        #Need a request object to store the cookie
+        self.assertFalse(flipper.is_active('ab_percent'))
+
+    def test_100_percent(self):
+        #Tests that the feature is active when the percent is set to 100
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=100)
+        self.assertTrue(flipper.is_active('ab_percent'))
+
+    def test_0_percent(self):
+        #Tests that the feature is not active for when the percent value is set to 0
+        FeatureFlag.objects.create(name='ab_percent', enabled=True, percent=0)
+        self.assertFalse(flipper.is_active('ab_percent'))
 
 class CustomFlagTest(BaseTest):
     fixtures = ['dolphin_base_flags.json']
@@ -187,3 +271,44 @@ class CustomFlagTest(BaseTest):
         flipper.register_check('enabled', lambda x, **kwargs: False)
         self.assertFalse(flipper.is_active('enabled'))
 
+
+class SitesTest(BaseTest):
+    fixtures = ['dolphin_base_flags.json']
+
+    def test_enable_for_sites(self):
+        #Tests that the feature is active for only the enabled sites
+        site = Site.objects.get_current()
+        flag = FeatureFlag.objects.create(name='enable_test', enabled=True)
+ 
+        # with enable_for_sites set to false it should be active
+        self.assertTrue(flipper.is_active('enable_test'))
+
+        LocalStoreMiddleware.local.clear()
+
+        # set enable_for_sites to true without any sites should be inactive
+        flag.enable_for_sites = True
+        flag.save()
+        self.assertFalse(flipper.is_active('enable_test'))
+ 
+        LocalStoreMiddleware.local.clear()
+
+        # now add the current site, it should be active
+        flag.sites.add(site)
+        self.assertTrue(flipper.is_active('enable_test'))
+
+
+    def test_disable_for_site(self):
+        #Tests that the feature is inactive for the sites specified
+        site = Site.objects.get_current()
+        flag = FeatureFlag.objects.create(name='disabled_test', enabled=True)
+ 
+        # disable_for_sites without any sites should be active
+        flag.disable_for_sites = True
+        flag.save()
+        self.assertTrue(flipper.is_active('disabled_test'))
+ 
+        LocalStoreMiddleware.local.clear()
+
+        # now add the current site, it should be inactive
+        flag.sites.add(site)
+        self.assertFalse(flipper.is_active('disabled_test'))
